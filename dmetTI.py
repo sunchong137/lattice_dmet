@@ -123,6 +123,12 @@ class dmet:
         self.diisStart = 4
         self.diisDim = 4    
 
+        #DAMP
+        self.doDAMP = True
+        self.dampStart = 4
+        self.dampFactor = 0.25
+        self.dampTol = 0.005
+
         #Zero Value for Orbital Selection
         self.ZeroValue = 1.0e-9
         
@@ -1091,6 +1097,15 @@ class dmet:
             if(not skipDiis):
                 print "DIIS GUESS USED"
                 self.u_mat_new = self.replicate_u_matrix(self.array2matrix(pvcor))  
+
+        #DAMP
+        if(self.doDAMP):
+            vcor = self.matrix2array(utils.extractImp(self.Nimp,self.u_mat))
+            vcor_new = self.matrix2array(utils.extractImp(self.Nimp,self.u_mat_new))
+            diffcorr = vcor_new-vcor
+            if(self.itr>=self.dampStart and np.linalg.norm(diffcorr)/len(diffcorr) < self.dampTol):
+                self.u_mat_new = self.replicate_u_matrix(self.array2matrix(diffcorr*self.dampFactor + vcor))
+
 
         #calculate frobenius norm of difference between old and new u-matrix (np.linalg.norm)
         udiff = utils.extractImp(self.Nimp,self.u_mat - self.u_mat_new)
