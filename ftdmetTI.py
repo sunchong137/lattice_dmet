@@ -604,7 +604,7 @@ class ftdmet(dmet):
 
         sys.stdout.flush() 
 
-        print "HF Impurity Hamiltonian"
+        print "HF Impurity RDM"
         ro = utils.extractImp(self.Nimp,self.hf1RDM_site)
         utils.displayMatrix(ro)
         print

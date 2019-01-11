@@ -14,9 +14,6 @@ from hartreefock import hf_hubbard_calc as zeroThf
 import scipy.linalg as la
 
 #####################################################################
-#Returns order of error
-#0.9e-4 is of order 10^-3
-#0.2e-4 is of order 10^-4
 def order(x):
 
         if(x == 0.0):
