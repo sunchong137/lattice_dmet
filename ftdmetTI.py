@@ -43,14 +43,13 @@ class ftdmet(dmet):
     def updateParams(self):
         dmet.updateParams(self)
         if(self.solverType=="MPS"):
-            if(self.iformalism):
+            if(self.iformalism and abs(self.filling-0.5)>1e-10):
                 self.misolver = solver.microIterationMPS_fitmu
             else:
                 self.misolver = solver.microIterationMPS 
         elif(self.solverType=="FCI"):
-            if(self.iformalism):
-                #self.misolver = solver.microIteration_fitmu
-                self.misolver = solver.microIteration
+            if(self.iformalism and abs(self.filling-0.5)>1e-10):
+                self.misolver = solver.microIteration_fitmu
             else:
                 self.misolver = solver.microIteration
                 
@@ -138,39 +137,6 @@ class ftdmet(dmet):
         Nbasis = self.Nbasis
         Nimp = self.Nimp
         use_ham = self.hbath
-        #if (use_ham and qrpower < 2):
-        #    print "WARNING: The Lattice Hamiltonian bath is only used for extra bath orders!"
-        #    print "WARNING: Changing back to RDM bath!"
-        #    use_ham = False
-
-        #if self.T < 1e-3:
-        #    return self.get_rotmat_svd(RDM1)
-        # test:
-        #if use_ham:
-        #    np.set_printoptions(linewidth=1000)
-        #    h_lat = self.h1 + self.u_mat + self.fock2e
-        #    rdma = h_lat[:Nbasis,:Nbasis]
-        #    
-        #    Qsa = []
-        #    for p in range(qrpower+1):
-        #        dmpowa = np.linalg.matrix_power(rdma,p) 
-        #        Qa, _ = np.linalg.qr(dmpowa[:, :Nimp])
-        #        Qsa.append(Qa)
-        #    #mergedQsa = np.hstack(Qsa)
-        #    #Qtota, ra = np.linalg.qr(mergedQsa) # re-orthogonalize
-        #    #print "---test----"
-        #    #print ra
-        #    rdma_r = RDM1[:Nbasis, :Nbasis]
-        #    for p in range(qrpower):
-        #        dmpowa = np.linalg.matrix_power(rdma_r,p)
-        #        Qa, _ = np.linalg.qr(dmpowa[:, :Nimp])
-        #        Qsa.append(Qa)
-        #    mergedQsa = np.hstack(Qsa)
-        #    Qtota, ra = np.linalg.qr(mergedQsa) # re-orthogonalize
-        #    
-        #    print ra
-        ##end test
-            
 
         if use_ham:
             print "Using lattice hamiltonian to construct the bath orbitals!"
@@ -191,14 +157,6 @@ class ftdmet(dmet):
             Qsa.append(Qa)
             Qsb.append(Qb)
 
-
-        # test
-        #Denv = rdma[Nimp:, Nimp:]
-        #spect, _ = np.linalg.eigh(Denv)
-        #print spect
-        #exit()
-
-        # end test
         mergedQsa = np.hstack(Qsa)
         mergedQsb = np.hstack(Qsb)
         Qtota, _ = np.linalg.qr(mergedQsa) # re-orthogonalize
@@ -213,9 +171,6 @@ class ftdmet(dmet):
 
         #PM localization
         print "Bath orbitals are localized with Boys method!"
-        #bath_a = ftmodules.localbath(bath_a)
-        #bath_b = ftmodules.localbath(bath_b)
-
         rotmat = np.zeros((Nbasis*2, Nemb))
         rotmat[:Nimp,:Nimp] = np.eye(Nimp)
         rotmat[Nbasis:Nimp+Nbasis,Nimp:2*Nimp] = np.eye(Nimp)
@@ -228,10 +183,7 @@ class ftdmet(dmet):
         Ncore = (self.Nelec_tot - self.actElCount)/2
 
         print 'The order of the bath: ', qrpower
-        #print 'Virtual orbital #: ', Nbasis-Nemb/2-Ncore
         print 'Bath orbital #: ', (Nemb - 2*Nimp)/2
-        #print 'Core orbital #: ', Ncore
-        #print 'Active Electron #: ', self.actElCount
         print 
 
         if(self.fitBath):
@@ -239,9 +191,7 @@ class ftdmet(dmet):
             self.paramss = self.fitIndex*(self.fitIndex+1)/2
         else:
             self.fitIndex = self.Nimp*2
-            #self.paramss = self.fitIndex*(self.fitIndex+1)/2
             self.paramss = self.Nimp*(self.Nimp+1)
- 
 
         rdmCsite = np.zeros((2*Nbasis, 2*Nbasis)) # rdmCsite is not used in NIbath formula
 
@@ -296,8 +246,6 @@ class ftdmet(dmet):
                 
                 Vaa = np.zeros((lb, lb, lb, lb))
                 Vab = np.einsum('pi,iq,ri,is -> pqrs',Rup.conjugate().T,Rup,Rdn.conjugate().T,Rdn)*self.g2e_site[0]
-                #print Vab[self.Nimp:,self.Nimp:,self.Nimp:,self.Nimp:]
-                #exit()
                 V_emb = (Vaa, Vab, Vaa)
 
         else:
@@ -353,15 +301,12 @@ class ftdmet(dmet):
             print '----------------------------------------------------------'
             print '1 body energy contribution: ', E1/self.Nimp
             print '2 body energy contribution: ', E2/self.Nimp
-            #print (E1+E2)/(1.*self.Nimp)
-            #exit()
             return E1+E2
 
     #####################################################################
     def get_impurityEnergyNI(self,h_emb,V_emb,rdm1,rdm2):
     
         h1 = ftmodules.perm1el(h_emb, self.Nimp)
-
     
         ld = h_emb.shape[-1]
         Norb = ld/2
@@ -434,7 +379,6 @@ class ftdmet(dmet):
         mat = np.zeros([self.Nimp*2,self.Nimp*2],dtype=self.mtype)
         
         if(self.constrainType == 'UHF'):
-        
             ls = self.Nimp*(self.Nimp-1)/2     
             p = 0
             for i in range(self.Nimp-1):
@@ -446,10 +390,8 @@ class ftdmet(dmet):
             mat = mat + mat.conj().T 
             for i in range(2*self.Nimp):
                 mat[i,i] = self.grandmu
-                #mat[i,i] *= 0.5        
                 
         elif(self.constrainType == 'RHF'):
-            
             p = 0
             for i in range(self.Nimp-1):
                 for j in range(i+1,self.Nimp):
@@ -460,7 +402,6 @@ class ftdmet(dmet):
             mat = mat + mat.conj().T 
             for i in range(2*self.Nimp):
                 mat[i,i] = self.grandmu
-                #mat[i,i] *= 0.5            
             
         else:
             raise RuntimeError("Invalid constraint option")
@@ -540,31 +481,6 @@ class ftdmet(dmet):
             print "LUMO-HOMO: ",hfgap
             self.hfgap = hfgap #Important will be used to prevent certain search valleys 
         sys.stdout.flush()
-
-        #if(abs(hfgap) <1.0e-9 and self.constrainType!='BCS' and self.T < 0.001):
-        #    #Something weird is going on - so plot, checkpoint and terminate
-        #    print "Degeneracy Issues"
-        #    print "Degenerate spectrum: "
-        #    degs = hfevals[abs((hfevals[1:] - hfevals[:-1]))<1.0e-16]
-        #    print degs
-        #    deglocs = []
-        #    pos = np.array(range(len(hfevals)))
-        #    for e in degs:
-        #        deglocs.append(pos[abs(e-hfevals)<1.0e-16])
-        #    #print deglocs 
-        #    sys.exit()
-
-        #    import transform
-        #    self.checkPoint("weirdError.hdf5")
-        #    if(h_site_mod.shape[0]==self.g2e_site.shape[0]):
-        #        h2el = hf.make_h2el_full(self.g2e_site,self.hf1RDM_site)
-        #    else:
-        #        h2el = hf.make_h2el(self.g2e_site,self.hf1RDM_site)
-
-        #    transform.makePlot(h_site_mod,self.Nimp,self.Nelec_tot,'save_core1.png')
-        #    #transform.makePlot(h_site_mod+h2el,self.Nimp,self.Nelec_tot,'save_fock1.png') 
-        #    sys.exit()
-
 
         #Calculate rotation matrix to embedding basis from HF 1RDM (same as calculating bath orbitals)
         R, rdmCore = self.get_rotmat( self.hf1RDM_site )
