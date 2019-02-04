@@ -48,7 +48,8 @@ class ftdmet(dmet):
             else:
                 self.misolver = solver.microIterationMPS 
         elif(self.solverType=="FCI"):
-            if(self.iformalism and abs(self.filling-0.5)>1e-10):
+            #if(self.iformalism and abs(self.filling-0.5)>1e-10):
+            if(self.iformalism):
                 self.misolver = solver.microIteration_fitmu
             else:
                 self.misolver = solver.microIteration
@@ -286,15 +287,17 @@ class ftdmet(dmet):
                         for orb3 in range(ld/2):
                             for orb4 in range(ld/2):
                                 E2 += corr2RDM[i][ orb1, orb2, orb3, orb4 ]*V2_emb[i][ orb2, orb1, orb4, orb3]
-            docc = 0.
+            rdm2diag = []
             for i in range(self.Nimp):
-                docc += corr2RDM[1][i,i,i,i]
-            docc /= self.Nimp
+                rdm2diag.append(corr2RDM[1][i,i,i,i])
+            rdm2diag = np.asarray(rdm2diag)
+            docc = np.average(rdm2diag)
+            print "RDM2 diagonal terms: ", rdm2diag
             netot = 0.
             for i in range(2*self.Nimp):
                 netot += corr1RDM[i,i]
 
-            print "T-Double occ:   %.2f      %.12f"%(self.T, docc)
+            print "T-Double occ (Iform):   %.2f      %.12f"%(self.T, docc)
             print "T-Ne on impurity:    %.2f      %.12f"%(self.T, netot)
             print '----------------------------------------------------------'
 
@@ -335,13 +338,12 @@ class ftdmet(dmet):
             rdm2diag.append(rdm2[1][i,i,i,i])
         rdm2diag = np.asarray(rdm2diag)
         docc = np.average(rdm2diag)
-        print "RDM2 diagonal terms: "
-        print rdm2diag
+        print "RDM2 diagonal terms: ", rdm2diag
         netot = 0.
         for i in range(2*self.Nimp):
             netot += rdm1[i,i]
         
-        print "T-Double occ:   %.4f      %.12f"%(self.T, docc)
+        print "T-Double occ (NIform):   %.4f      %.12f"%(self.T, docc)
         print "T-Ne on impurity:    %.4f      %.12f"%(self.T, netot)
         print '----------------------------------------------------------'
         print '1 body energy contribution: ', E1/self.Nimp
