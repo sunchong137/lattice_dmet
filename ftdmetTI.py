@@ -330,10 +330,13 @@ class ftdmet(dmet):
                             E2 += rdm2[i][ orb1, orb2, orb3, orb4 ]*V_emb[i][ orb2, orb1, orb4, orb3]
     
     
-        docc = 0.
+        rdm2diag = []
         for i in range(self.Nimp):
-            docc += rdm2[1][i,i,i,i]
-        docc /= self.Nimp
+            rdm2diag.append(rdm2[1][i,i,i,i])
+        rdm2diag = np.asarray(rdm2diag)
+        docc = np.average(rdm2diag)
+        print "RDM2 diagonal terms: "
+        print rdm2diag
         netot = 0.
         for i in range(2*self.Nimp):
             netot += rdm1[i,i]
