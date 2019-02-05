@@ -43,13 +43,14 @@ class ftdmet(dmet):
     def updateParams(self):
         dmet.updateParams(self)
         if(self.solverType=="MPS"):
-            if(self.iformalism and abs(self.filling-0.5)>1e-10):
+            #if(self.iformalism and abs(self.filling-0.5)>1e-10):
+            if(self.iformalism and self.T<1e-3):
                 self.misolver = solver.microIterationMPS_fitmu
             else:
                 self.misolver = solver.microIterationMPS 
         elif(self.solverType=="FCI"):
             #if(self.iformalism and abs(self.filling-0.5)>1e-10):
-            if(self.iformalism):
+            if(self.iformalism and self.T<1e-3):
                 self.misolver = solver.microIteration_fitmu
             else:
                 self.misolver = solver.microIteration
