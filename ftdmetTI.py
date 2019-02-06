@@ -21,7 +21,7 @@ import solvers as solver
 import ftmodules
 
 class ftdmet(dmet):
-    def __init__(self, Nbasis, Nelec_tot, Nimp, h1e_site, g2e_site, h1esoc_site=None, SolverType='FCI', u_matrix=None, mtype = np.float64, ctype = 'SOC', globalMu=None, T=0.0, grandMu=0.0, BathOrder=1, maxm=2000, tau=0.1, fix_udiag=False, hbath=True):
+    def __init__(self, Nbasis, Nelec_tot, Nimp, h1e_site, g2e_site, h1esoc_site=None, SolverType='FCI', u_matrix=None, mtype = np.float64, ctype = 'SOC', globalMu=None, T=0.0, grandMu=0.0, BathOrder=1, maxm=2000, tau=0.1, fix_udiag=False, hbath=False):
         dmet.__init__(self, Nbasis, Nelec_tot, Nimp, h1e_site, g2e_site, h1esoc_site, SolverType, u_matrix, mtype, ctype, globalMu)
 
         # add the temperature argument
@@ -44,14 +44,17 @@ class ftdmet(dmet):
         dmet.updateParams(self)
         if(self.solverType=="MPS"):
             #if(self.iformalism and abs(self.filling-0.5)>1e-10):
-            if(self.iformalism and self.T<1e-3):
+            if(self.iformalism or self.T<1e-3):
                 self.misolver = solver.microIterationMPS_fitmu
             else:
                 self.misolver = solver.microIterationMPS 
         elif(self.solverType=="FCI"):
             #if(self.iformalism and abs(self.filling-0.5)>1e-10):
-            if(self.iformalism and self.T<1e-3):
-                self.misolver = solver.microIteration_fitmu
+            if(self.iformalism or self.T<1e-3):
+                if(abs(self.filling-0.5)>1e-10):
+                    self.misolver = solver.microIteration_fitmu
+                else:
+                    self.misolver = solver.microIteration
             else:
                 self.misolver = solver.microIteration
                 
@@ -90,13 +93,13 @@ class ftdmet(dmet):
  
         lba = BaT.shape[0]
         lbb = BbT.shape[0]
+
         rotmat = np.zeros([ 2*Nbasis, 2*Nimp + lba + lbb])
- 
         rotmat[:Nimp,:Nimp] = np.eye(Nimp)
         rotmat[Nbasis:Nimp+Nbasis,Nimp:2*Nimp] = np.eye(Nimp)
         rotmat[Nimp:Nbasis,2*Nimp:2*Nimp + lba] = BaT.T.conj()
         rotmat[Nbasis + Nimp:Nbasis+Nbasis,2*Nimp+lba:] = BbT.T.conj()
- 
+
         self.actElCount = (Nimp*2 + lba + lbb)/2
         #The embedding system is always half-filling!
         Ncore = (self.Nelec_tot - self.actElCount)/2
@@ -135,13 +138,16 @@ class ftdmet(dmet):
         # generate rotmat from orders of RDM1, i.e., I, RDM1, RDM1**2,..., RDM1**qrpower
         # impurity basis is from I, bath is from RDM1, second order bath from RDM1**2
 
+        #if self.T < 1e-3:
+        #    return self.get_rotmat_svd(RDM1)
+
         qrpower = self.bath_order
         Nbasis = self.Nbasis
         Nimp = self.Nimp
         use_ham = self.hbath
 
         if use_ham:
-            print "Using lattice hamiltonian to construct the bath orbitals!"
+            print "USING one-body Hamiltonian to calculate the bath orbitals!"
             h_lat = self.h1 + self.u_mat + self.fock2e
             rdma = h_lat[:Nbasis,:Nbasis]
             rdmb = h_lat[Nbasis:,Nbasis:]
@@ -165,20 +171,21 @@ class ftdmet(dmet):
         Qtotb, _ = np.linalg.qr(mergedQsb) 
         bath_a = Qtota[Nimp:, Nimp:]
         bath_b = Qtotb[Nimp:, Nimp:]
-   
-        lba = Qtota.shape[-1]
-        lbb = Qtotb.shape[-1]
 
-        Nemb = lba + lbb # including the impurity orbs
+        lba = Qtota.shape[-1]-Nimp
+        lbb = Qtotb.shape[-1]-Nimp
 
-        #PM localization
+        Nemb = lba + lbb + 2*Nimp # including the impurity orbs
+
         print "Bath orbitals are localized with Boys method!"
         rotmat = np.zeros((Nbasis*2, Nemb))
         rotmat[:Nimp,:Nimp] = np.eye(Nimp)
         rotmat[Nbasis:Nimp+Nbasis,Nimp:2*Nimp] = np.eye(Nimp)
-        rotmat[Nimp:Nbasis,2*Nimp:Nimp + lba] = bath_a #Qtota[Nimp:, Nimp:]
-        rotmat[Nbasis + Nimp:Nbasis+Nbasis,Nimp+lba:] = bath_b #Qtotb[Nimp:, Nimp:]
+        rotmat[Nimp:Nbasis,2*Nimp:(2*Nimp + lba)] = bath_a #Qtota[Nimp:, Nimp:]
+        rotmat[(Nbasis+Nimp):Nbasis+Nbasis,(2*Nimp+lba):] = bath_b #Qtotb[Nimp:, Nimp:]
 
+
+        #np.set_printoptions(3, linewidth=1000)
 
         # No need to calculate embedding electron number
         self.actElCount = Nemb/2

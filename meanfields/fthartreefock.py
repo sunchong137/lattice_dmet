@@ -32,6 +32,7 @@ def hf_hubbard_calc(dmet,mu,Hcore,Porig=None,S=None,itrmax=0, needEnergy=False, 
                     gap=None):
     
 
+
     # HartreeFock procedure for grand-canonical ensemble
     # input: T, mu
     T = dmet.T
@@ -44,8 +45,8 @@ def hf_hubbard_calc(dmet,mu,Hcore,Porig=None,S=None,itrmax=0, needEnergy=False, 
     def fermi(mu_):
         return 1./(1.+np.exp((evals-mu_)*beta))
 
-    if T < 1.e-2:
-        return zeroThf(dmet.Nelec_tot, Hcore, None)
+    if T < 1.e-3:
+        return zeroThf(dmet.Nelec_tot, Hcore, None,needEnergy=needEnergy)
     else:
         beta = 1./T
         eocc = fermi(mu)
