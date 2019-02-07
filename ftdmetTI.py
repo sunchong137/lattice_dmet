@@ -32,9 +32,9 @@ class ftdmet(dmet):
         self.MaxMPSM = maxm
         self.TimeStep = tau
         self.doDIIS = True
-        self.minimize_u_matrix = mmizer.minimizelsq
+        #self.minimize_u_matrix = mmizer.minimizelsq
+        self.minimize_u_matrix = mmizer.minimizeBFGS
         self.hbath = hbath
-        #self.minimize_u_matrix = mmizer.minimizeBFGS
         if fix_udiag:
             #self.minimize_u_matrix = mmizer.minimizeBFGS_fixdiag 
             self.minimize_u_matrix = mmizer.minimizelsq_fixdiag
@@ -172,17 +172,17 @@ class ftdmet(dmet):
         bath_a = Qtota[Nimp:, Nimp:]
         bath_b = Qtotb[Nimp:, Nimp:]
 
-        lba = Qtota.shape[-1]-Nimp
-        lbb = Qtotb.shape[-1]-Nimp
+        lba = Qtota.shape[-1]
+        lbb = Qtotb.shape[-1]
 
-        Nemb = lba + lbb + 2*Nimp # including the impurity orbs
+        Nemb = lba + lbb # including the impurity orbs
 
         print "Bath orbitals are localized with Boys method!"
         rotmat = np.zeros((Nbasis*2, Nemb))
         rotmat[:Nimp,:Nimp] = np.eye(Nimp)
         rotmat[Nbasis:Nimp+Nbasis,Nimp:2*Nimp] = np.eye(Nimp)
-        rotmat[Nimp:Nbasis,2*Nimp:(2*Nimp + lba)] = bath_a #Qtota[Nimp:, Nimp:]
-        rotmat[(Nbasis+Nimp):Nbasis+Nbasis,(2*Nimp+lba):] = bath_b #Qtotb[Nimp:, Nimp:]
+        rotmat[Nimp:Nbasis,2*Nimp:(Nimp + lba)] = bath_a #Qtota[Nimp:, Nimp:]
+        rotmat[(Nbasis+Nimp):Nbasis+Nbasis,(Nimp+lba):] = bath_b #Qtotb[Nimp:, Nimp:]
 
 
         #np.set_printoptions(3, linewidth=1000)

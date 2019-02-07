@@ -82,6 +82,8 @@ def minimizeBFGS(dmet, R, gtol = 1.0e-8, miter=1000):
     
     #Minimize difference between HF and correlated DMET 1RDMs
     min_result = minimize( costf, params, method = 'BFGS', jac = jacf , tol = gtol, options={'maxiter': miter})
+    #min_result = minimize( costf, params, method = 'BFGS' , tol = gtol, options={'maxiter': miter})
+    #min_result = minimize( costf, params, method = 'CG' , tol = gtol, options={'maxiter': miter})
     #min_result = minimize( costf, params, method = 'BFGS', tol = gtol, options={'maxiter': miter})
     x = min_result.x
     
