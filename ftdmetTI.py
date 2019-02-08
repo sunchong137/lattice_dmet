@@ -33,7 +33,7 @@ class ftdmet(dmet):
         self.TimeStep = tau
         self.doDIIS = True
         #self.minimize_u_matrix = mmizer.minimizelsq
-        self.minimize_u_matrix = mmizer.minimizeBFGS
+        self.minimize_u_matrix = mmizer.minimizeBFGSR
         self.hbath = hbath
         if fix_udiag:
             #self.minimize_u_matrix = mmizer.minimizeBFGS_fixdiag 

@@ -27,7 +27,7 @@ def order(x):
         return 10.**int(od)
 #####################################################################
 
-def hf_hubbard_calc(dmet,mu,Hcore,Porig=None,S=None,itrmax=0, needEnergy=False, \
+def hf_hubbard_calc(dmet,Nelec,Hcore,Porig=None,S=None,itrmax=0, needEnergy=False, \
                     assertcheck=False, doDIIS=False, doShift=False, hfoscitr=0, \
                     gap=None):
     
@@ -46,7 +46,7 @@ def hf_hubbard_calc(dmet,mu,Hcore,Porig=None,S=None,itrmax=0, needEnergy=False, 
         return 1./(1.+np.exp((evals-mu_)*beta))
 
     if T < 1.e-3:
-        return zeroThf(dmet.Nelec_tot, Hcore, None,needEnergy=needEnergy)
+        return zeroThf(Nelec, Hcore, None,needEnergy=needEnergy)
     else:
         beta = 1./T
         eocc = fermi(mu)
