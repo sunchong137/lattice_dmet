@@ -72,11 +72,35 @@ def minimizeBFGSR(dmet, R, gtol = 1.0e-8, miter=1000):
             J = jac[k][:dmet.fitIndex,:dmet.fitIndex]
             gradfn[k] = 2.*np.sum(np.multiply(J.real,diffrdmR) + np.multiply(J.imag,diffrdmI))
             
-        np.savetxt('/home/sunchong/anagrad.txt',gradfn)
-        ng_ = numgrad(x)
-        np.savetxt('/home/sunchong/numgrad.txt',ng_)
-        exit()
+        #np.savetxt('/home/sunchong/anagrad.txt',gradfn)
+        #ng_ = numgrad(x)
+        #np.savetxt('/home/sunchong/numgrad.txt',ng_)
+        #ng_n = jacf_n(x)
+        #np.savetxt('/home/sunchong/ftgrad.txt',ng_n)
+        #exit()
         return gradfn
+
+    #def jacf_n(x):
+    #    u_mat_imp = dmet.array2matrix(x)
+    #    u_mat_ext = dmet.replicate_u_matrix( u_mat_imp )
+    #    limp = u_mat_imp.shape[-1]
+    #    print limp
+    #        
+    #    sh = dmet.h1 + dmet.fock2e + u_mat_ext
+    #    sh_emb = np.dot(R.conj().T, np.dot(sh, R))
+    #    hf1RDM_b,orbs,_,energies = dmet.hfsolver(dmet, dmet.actElCount,sh_emb)
+    #    nb = hf1RDM_b.shape[-1]
+    #    grad_emb = ftmodules.analyticGradientT_N(orbs,energies,dmet.T,dmet.grandmu)
+    #    ugrad = np.einsum('ik,lj->ijkl', (R.conj().T)[:,:limp], R[:limp,:])
+    #    ugrad = ugrad[np.triu_indices(nb)]
+    #    jac = np.einsum('pij, pkl -> ijkl', ugrad,grad_emb)
+
+    #    jac = jac[np.triu_indices(limp)][:,:dmet.fitIndex,:dmet.fitIndex]
+    #    diffrdm = (hf1RDM_b - dmet.IRDM1)[:dmet.fitIndex,:dmet.fitIndex] 
+    #    grad = np.einsum('pij,ij -> p', jac, diffrdm)
+    #    
+    #    return grad
+        
 
     def numgrad(x):
         gradfn = np.zeros(len(x))
@@ -90,12 +114,9 @@ def minimizeBFGSR(dmet, R, gtol = 1.0e-8, miter=1000):
             gradfn[k] = (fmax-fmin)/0.02
         return gradfn
 
-
-
-    
     #Minimize difference between HF and correlated DMET 1RDMs
-    min_result = minimize( costf, params, method = 'BFGS', jac = jacf , tol = gtol, options={'maxiter': miter})
-    #min_result = minimize( costf, params, method = 'BFGS', tol = gtol, options={'maxiter': miter})
+    #min_result = minimize( costf, params, method = 'BFGS', jac = jacf , tol = gtol, options={'maxiter': miter})
+    min_result = minimize( costf, params, method = 'BFGS', tol = gtol, options={'maxiter': miter})
     x = min_result.x
     
     print "Final Diff: ",min_result.fun,"Converged: ",min_result.status," Jacobian: ",np.linalg.norm(min_result.jac)

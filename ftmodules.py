@@ -18,6 +18,8 @@ def ftimpsolver(dmet, h_emb,V_emb,Norb,Nelec):
     #print np.sum(V_emb)/h_emb.shape[-1]*2
     h_embn = perm1el(h_emb, dmet.Nimp, tomix=False)
     h1 = (h_embn[:Norb, :Norb], h_embn[Norb:, Norb:])
+    ew,ev = np.linalg.eigh(h1[0])
+    
     #V2_aa = np.zeros((Norb,Norb,Norb,Norb))
     #V2_ab = ftutils.permV(V_emb)[:Norb, :Norb, :Norb, :Norb]
     #V2 = (V2_aa, V2_ab, V2_aa)
@@ -150,6 +152,40 @@ def analyticGradientT(C0,E,dH,nocc,T,mu):
     #        + np.dot(Cvir, np.dot(np.diag(fvir), Cvir.conj().T))
     #print result
     return result
+  
+###############################################################################
+def analyticGradientT_N(C0,E,T,mu):
+    '''
+    Alec White's derivation.
+    dD/du = CC*KCC*
+    '''
+    L = len(E)
+    beta = 1./T
+    def fermi(e):
+        return 1./(1.+np.exp((e-mu)*beta))
+    
+    n = fermi(E)
+
+    # Calculate K
+    dE = E[:,None] - E[None,:]
+    dE_n = dE.copy()
+    deg_idx = np.where(abs(dE)<1.0e-15)
+    dE_n[deg_idx] = 1e-15
+
+    beta_dE = beta*(dE)
+    beta_dE[beta_dE > 300] = 300
+    
+    Kr = (np.exp(beta_dE)-1.)/(dE_n)
+    Kr[deg_idx] = beta
+    Kl = (1.-n[:,None])*n[None,:]
+    K = Kl*Kr
+    
+    g = np.einsum('mp,lp,pq,sq,vq -> lsmv', C0,C0.conj(),K,C0,C0.conj())
+    g = g[np.triu_indices(L)]
+
+    return g
+
+
 
 
 ###############################################################################
