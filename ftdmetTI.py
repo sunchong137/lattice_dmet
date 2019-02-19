@@ -21,7 +21,7 @@ import solvers as solver
 import ftmodules
 
 class ftdmet(dmet):
-    def __init__(self, Nbasis, Nelec_tot, Nimp, h1e_site, g2e_site, h1esoc_site=None, SolverType='FCI', u_matrix=None, mtype = np.float64, ctype = 'SOC', globalMu=None, T=0.0, grandMu=0.0, BathOrder=1, maxm=2000, tau=0.1, fix_udiag=False, hbath=False):
+    def __init__(self, Nbasis, Nelec_tot, Nimp, h1e_site, g2e_site, h1esoc_site=None, SolverType='FCI', u_matrix=None, mtype = np.float64, ctype = 'SOC', globalMu=None, T=0.0, grandMu=0.0, BathOrder=1, maxm=2000, tau=0.1, fix_udiag=False, hbath=False, fitmu=False):
         dmet.__init__(self, Nbasis, Nelec_tot, Nimp, h1e_site, g2e_site, h1esoc_site, SolverType, u_matrix, mtype, ctype, globalMu)
 
         # add the temperature argument
@@ -34,7 +34,9 @@ class ftdmet(dmet):
         self.doDIIS = True
         #self.minimize_u_matrix = mmizer.minimizelsq
         self.minimize_u_matrix = mmizer.minimizeBFGSR
+        #self.minimize_u_matrix = mmizer.minimizeBFGS
         self.hbath = hbath
+        self.fitmu = fitmu
         if fix_udiag:
             #self.minimize_u_matrix = mmizer.minimizeBFGS_fixdiag 
             self.minimize_u_matrix = mmizer.minimizelsq_fixdiag
@@ -43,22 +45,11 @@ class ftdmet(dmet):
     def updateParams(self):
         dmet.updateParams(self)
         if(self.solverType=="MPS"):
-            #if(self.iformalism and abs(self.filling-0.5)>1e-10):
-            if(self.iformalism or self.T<1e-3):
-                self.misolver = solver.microIterationMPS_fitmu
-            else:
-                self.misolver = solver.microIterationMPS 
+            self.misolver = solver.microIterationMPS
         elif(self.solverType=="FCI"):
-            #if(self.iformalism and abs(self.filling-0.5)>1e-10):
-            if(self.iformalism or self.T<1e-3):
-                if(abs(self.filling-0.5)>1e-10):
-                    self.misolver = solver.microIteration_fitmu
-                else:
-                    self.misolver = solver.microIteration
-            else:
-                self.misolver = solver.microIteration
-                
-        #self.startMu = self.grandmu
+            self.misolver = solver.microIteration
+        if not self.fitmu:
+            self.startMu = self.grandmu
     def displayParameters(self):
         dmet.displayParameters(self)
         print "Temperature of the system: %4.4f t"%self.T
@@ -556,9 +547,9 @@ class ftdmet(dmet):
                  
         #Remember filling = 1/2 of no. of particles per site
         if(self.muSolverSimple):    
-            lastmu = self.misolver(self,[lastmu],R,h1body, V_emb,self.Nimp*self.filling*2,self.hfgap,gtol,self.corrIter)
+            lastmu = self.misolver(self,[lastmu],R,h1body, V_emb,self.Nimp*self.filling*2,self.hfgap,gtol,self.corrIter,fitmu=self.fitmu)
         else:
-            lastmu = self.misolver(self,lastmu,R,h1body, V_emb, self.Nimp*self.filling*2,gtol,self.corrIter)
+            lastmu = self.misolver(self,lastmu,R,h1body, V_emb, self.Nimp*self.filling*2,gtol,self.corrIter,fitmu=self.fitmu)
         self.muCollection.append(lastmu)
 
         #Calculate the DMET site energy and density of bath
