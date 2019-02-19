@@ -8,7 +8,7 @@ import utils
 sys.path.append('../')
 import ftmodules
 
-def minimizelsq( dmet, R, gtol = 1.0e-9, miter = 10):
+def minimizelsq( dmet, R, gtol = 1.0e-6, miter = 10):
 
     #Define parameters to optimize from previous DMET guess (vs guess from previous cluster in the loop ) of u-matrix associated with impurity sites in cluster
     #Note since u-matrix must be symmetric (if real) only optimize half the parameters
@@ -21,8 +21,6 @@ def minimizelsq( dmet, R, gtol = 1.0e-9, miter = 10):
         dmet.dlog.write('==================================================\n')
         dmet.dlog.flush()
     
-    #h2el = hf.make_h2el(dmet.g2e_site,hf1rdm_site)    
-    #fock = dmet.h1 + h2el  
     ll = np.triu_indices(dmet.fitIndex)
 
     def costf(x):
@@ -90,8 +88,8 @@ def minimizelsq( dmet, R, gtol = 1.0e-9, miter = 10):
     params = dmet.matrix2array( u_mat_imp )
     pbounds = ([-5.0 for x in params],[5.0 for x in params])
     
-    min_result = least_squares(costf, params, ftol = gtol, jac = '2-point', max_nfev = miter*len(params), bounds = pbounds)
-    #min_result = least_squares(costf, params, ftol = gtol, jac = jacf, max_nfev = miter*len(params), bounds = pbounds)
+    #min_result = least_squares(costf, params, ftol = gtol, jac = '2-point', max_nfev = miter*len(params), bounds = pbounds)
+    min_result = least_squares(costf, params, ftol = gtol, jac = jacf, max_nfev = miter*len(params), bounds = pbounds)
     #min_result = least_squares(costf, params, ftol = gtol, max_nfev = miter*len(params), bounds = pbounds)
     x = min_result.x
     ier = min_result.status
@@ -114,7 +112,7 @@ def minimizelsq( dmet, R, gtol = 1.0e-9, miter = 10):
 
 #####################################################################
  
-def minimizelsq_fixdiag( dmet, R, gtol = 1.0e-9, miter = 10):
+def minimizelsq_fixdiag( dmet, R, gtol = 1.0e-6, miter = 10):
 
     #Define parameters to optimize from previous DMET guess (vs guess from previous cluster in the loop ) of u-matrix associated with impurity sites in cluster
     #Note since u-matrix must be symmetric (if real) only optimize half the parameters

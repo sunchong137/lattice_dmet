@@ -49,6 +49,7 @@ def hf_hubbard_calc(Nelec,Hcore,g,Porig=None,S=None,itrmax=0, needEnergy = False
     #Form the 1RDM
     else:
         P = rdm_1el(orbs,Nelec)
+
    
     ''' 
     lgap = (evals[Nelec] - evals[Nelec-1])
@@ -60,7 +61,7 @@ def hf_hubbard_calc(Nelec,Hcore,g,Porig=None,S=None,itrmax=0, needEnergy = False
     if(needEnergy):	
     	Enew = np.trace(np.dot(P,Hcore))
     else:
-	Enew = 0.0
+	    Enew = 0.0
 
     return P, orbs, Enew, evals
 

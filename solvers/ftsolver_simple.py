@@ -8,8 +8,8 @@ from scipy import stats
 sys.path.append('../')
 import ftmodules
     
-def microIterationSimple(dmet,mus,R,h_emb,V_emb, targetN, hfgap, gtol, maxitr=50):
-
+def microIterationSimple(dmet,mus,R,h_emb,V_emb, targetN, hfgap, gtol, maxitr=50,fitmu=False, **kwargs):
+    
     print "Figuring out correct chemical potential for target density (on impurity): ",targetN
     sys.stdout.flush() 
 

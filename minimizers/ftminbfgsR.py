@@ -8,7 +8,7 @@ import utils
 sys.path.append('../')
 import ftmodules
 
-def minimizeBFGSR(dmet, R, gtol = 1.0e-8, miter=1000):
+def minimizeBFGSR(dmet, R, gtol = 1.0e-10, miter=1000):
 
     u_mat_imp = utils.extractImp(dmet.Nimp,dmet.u_mat)
     params = dmet.matrix2array( u_mat_imp )

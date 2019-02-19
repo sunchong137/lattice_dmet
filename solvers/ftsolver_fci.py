@@ -9,20 +9,10 @@ sys.path.append('../')
 import ftmodules
 
     
-def microIteration(dmet,mu0,R,h_emb,V_emb,targetN, gtol, maxiter=20,fitmu=False):
+def microIteration(dmet,mu0,R,h_emb,V_emb,targetN, gtol, maxiter=20,fitmu=False,**kwargs):
 
     sys.stdout.flush() 
     Mum = np.zeros([2*dmet.Nbasis,2*dmet.Nbasis],dtype = np.float64)
-
-    ''' 
-    for i in range(V_emb.shape[0]):
-        for j in range(V_emb.shape[1]):
-            for k in range(V_emb.shape[2]):
-                for l in range(V_emb.shape[3]):
-                    print i,j,k,l,V_emb[i,j,k,l]
-            
-    sys.exit()
-    '''
 
     def fn(mu, muc, dn):
     
@@ -64,7 +54,7 @@ def microIteration(dmet,mu0,R,h_emb,V_emb,targetN, gtol, maxiter=20,fitmu=False)
 
     if fitmu:
         print "Figuring out correct chemical potential for target density (on impurity): ",targetN
-        # test if fitmu is needed
+        # test if fitting mu is needed
         ndiff = fn(mu0, muc, dn)
         if abs(ndiff) < 1e-6:
             print "Fitting chemical potential mu is NOT needed!"
@@ -72,7 +62,6 @@ def microIteration(dmet,mu0,R,h_emb,V_emb,targetN, gtol, maxiter=20,fitmu=False)
         
         
         try:    
-            #mu = minimize(fn, mu0, method='Newton-CG',args=(muc, dn), tol=gtol, options={'disp':True})
             mu = newton(fn, mu0,args=(muc, dn), tol=gtol, maxiter=maxiter)
         except RuntimeError:
         
@@ -93,8 +82,6 @@ def microIteration(dmet,mu0,R,h_emb,V_emb,targetN, gtol, maxiter=20,fitmu=False)
         
             ###############################################################################     
             #Do high level calculation with FCI
-            #Enewn, orbsn = fci.kernel(h_emb+MumB,V_emb,h_emb.shape[0],dmet.actElCount) 
-            #Pn, P2n = fci.make_rdm12(orbsn,h_emb.shape[0],dmet.actElCount)   
             Pn, P2n, Enewn = ftmodules.ftimpsolver(dmet,h_emb+MumB,V_emb,h_emb.shape[0]/2,dmet.actElCount)
             ###############################################################################     
             

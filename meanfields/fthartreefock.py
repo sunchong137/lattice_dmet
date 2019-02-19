@@ -12,6 +12,7 @@ from scipy.optimize import newton
 from scipy.optimize import minimize
 from hartreefock import hf_hubbard_calc as zeroThf
 import scipy.linalg as la
+from fthartreefock_k import ni_calc_k
 
 #####################################################################
 def order(x):
@@ -46,18 +47,19 @@ def hf_hubbard_calc(dmet,Nelec,Hcore,Porig=None,S=None,itrmax=0, needEnergy=Fals
         return 1./(1.+np.exp((evals-mu_)*beta))
 
     if T < 1.e-3:
-        return zeroThf(Nelec, Hcore, None,needEnergy=needEnergy)
+        P, orbs, Enew, evals = zeroThf(Nelec, Hcore, None,needEnergy=needEnergy)
     else:
         beta = 1./T
         eocc = fermi(mu)
-    #Form the 1RDM
 
-    P = np.dot(orbs, np.dot(np.diag(eocc),orbs.T.conj()))
-   
-    if(needEnergy):	
-        Enew = np.trace(np.dot(P,Hcore))
-    else:
-        Enew = 0.0
+        #Form the 1RDM
+        P = np.dot(orbs, np.dot(np.diag(eocc),orbs.T.conj()))
+       
+        if(needEnergy):	
+            Enew = np.trace(np.dot(P,Hcore))
+        else:
+            Enew = 0.0
+    
     return P, orbs, Enew, evals
 
 #####################################################################
