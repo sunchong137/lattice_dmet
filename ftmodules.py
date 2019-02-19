@@ -13,7 +13,7 @@ from pyscf import gto
 
 
 ####################################################################################
-def ftimpsolver(dmet, h_emb,V_emb,Norb,Nelec):
+def ftimpsolver(dmet, h_emb,V_emb,Norb,mu,Nelec):
 
     #print np.sum(V_emb)/h_emb.shape[-1]*2
     h_embn = perm1el(h_emb, dmet.Nimp, tomix=False)
@@ -25,7 +25,7 @@ def ftimpsolver(dmet, h_emb,V_emb,Norb,Nelec):
     #V2 = (V2_aa, V2_ab, V2_aa)
     
     # solve the impurity problem
-    rdm1, rdm2, e = fted.rdm12s_fted(h1, V_emb, Norb, Nelec, dmet.T, symm=dmet.constrainType, mu=dmet.grandmu)
+    rdm1, rdm2, e = fted.rdm12s_fted(h1, V_emb, Norb, Nelec, dmet.T, symm=dmet.constrainType, mu=mu)
 
     #np.save("/home/sunchong/test/rdm1s.npy",np.asarray(rdm1))
     #np.save("/home/sunchong/test/rdm2s.npy",np.asarray(rdm2))

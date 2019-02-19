@@ -26,7 +26,8 @@ def microIteration(dmet,mu0,R,h_emb,V_emb,targetN, gtol, maxiter=20,fitmu=False,
         #Do high level calculation with FCI
         #Enewn, orbsn = fci.kernel(h_emb+MumB,V_emb,h_emb.shape[0],dmet.actElCount) 
         #Pn, P2n = fci.make_rdm12(orbsn,h_emb.shape[0],dmet.actElCount)   
-        Pn, P2n, Enewn = ftmodules.ftimpsolver(dmet,h_emb+MumB,V_emb,h_emb.shape[0]/2,dmet.actElCount)
+        #Pn, P2n, Enewn = ftmodules.ftimpsolver(dmet,h_emb+MumB,V_emb,h_emb.shape[0]/2,mu,dmet.actElCount)
+        Pn, P2n, Enewn = ftmodules.ftimpsolver(dmet,h_emb,V_emb,h_emb.shape[0]/2,mu,dmet.actElCount)
 
         #Do high level calculation with HF (FOR CHECKING)
                 #Pn, orbsn, Enewn, evalsn = hf.hf_calc(dmet.actElCount,h_emb+MumB,V_emb)
@@ -82,7 +83,7 @@ def microIteration(dmet,mu0,R,h_emb,V_emb,targetN, gtol, maxiter=20,fitmu=False,
         
             ###############################################################################     
             #Do high level calculation with FCI
-            Pn, P2n, Enewn = ftmodules.ftimpsolver(dmet,h_emb+MumB,V_emb,h_emb.shape[0]/2,dmet.actElCount)
+            Pn, P2n, Enewn = ftmodules.ftimpsolver(dmet,h_emb+MumB,V_emb,h_emb.shape[0]/2,mu,dmet.actElCount)
             ###############################################################################     
             
             dg = Pn.diagonal()
