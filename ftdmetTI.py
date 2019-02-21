@@ -21,8 +21,9 @@ import solvers as solver
 import ftmodules
 
 class ftdmet(dmet):
-    def __init__(self, Nbasis, Nelec_tot, Nimp, h1e_site, g2e_site, h1esoc_site=None, SolverType='FCI', u_matrix=None, mtype = np.float64, ctype = 'SOC', globalMu=None, T=0.0, grandMu=0.0, BathOrder=1, maxm=2000, tau=0.1, fix_udiag=False, hbath=False, fitmu=False):
-        dmet.__init__(self, Nbasis, Nelec_tot, Nimp, h1e_site, g2e_site, h1esoc_site, SolverType, u_matrix, mtype, ctype, globalMu)
+    def __init__(self, Nbasis, Nelec_tot, Nimp, h1e_site, g2e_site, h1esoc_site=None, SolverType='FCI', u_matrix=None, mtype = np.float64, ctype = 'UHF', globalMu=None, T=0.0, grandMu=0.0, BathOrder=1, maxm=2000, tau=0.1, fix_udiag=False, hbath=False, fitmu=False, utol=5e-6,etol=1e-5,ntol=1e-5):
+
+        dmet.__init__(self, Nbasis, Nelec_tot, Nimp, h1e_site, g2e_site, h1esoc_site, SolverType, u_matrix, mtype, ctype, globalMu,utol,etol,ntol)
 
         # add the temperature argument
         self.T = T

@@ -19,7 +19,7 @@ import solvers as solver
 
 class dmet:
 
-    def __init__( self, Nbasis, Nelec_tot, Nimp, h1e_site, g2e_site, h1esoc_site=None, SolverType='FCI', u_matrix=None, mtype = np.float64, ctype = 'SOC', globalMu=None):
+    def __init__( self, Nbasis, Nelec_tot, Nimp, h1e_site, g2e_site, h1esoc_site=None, SolverType='FCI', u_matrix=None, mtype = np.float64, ctype = 'SOC', globalMu=None, utol=5e-6, etol=1e-5, ntol=1e-6):
         
         #Options are: RHF, UHF, SOC
         self.constrainType = ctype
@@ -141,6 +141,11 @@ class dmet:
 
         #Interacting/Non-Interacting Formalism
         self.iformalism = True #Interacting Formalism
+
+        #Optimization tolerances
+        self.utol  = utol
+        self.etol  = etol
+        self.ntol  = ntol
 
         #####################################################################
 
@@ -1079,7 +1084,7 @@ class dmet:
 
         sys.stdout.flush() 
 
-        mintol = 1.0e-7
+        mintol = 1.0e-6
         maxiterformin = 200
         
         t1 = time.time()
@@ -1186,17 +1191,17 @@ class dmet:
 
         #DMET loop to converge u-matrix
         #u tolerances
-        tol        = 1e-6 * self.Nimp
+        tol        = self.utol * self.Nimp
         u_mat_diff = tol+1
-        minutol    = 1e-6 * self.Nimp #Atleast this tolerance is needed in u no matter what
+        minutol    = self.utol * self.Nimp #Atleast this tolerance is needed in u no matter what
 
         #rho tolerances
-        ntol       = 1e-6 * self.fitIndex
+        ntol       = self.ntol * self.fitIndex
         self.critnorm   = ntol + 1
 
         #energy tolerances
         Efrag0     = 0.0
-        etol       = 1.0e-6 #Energy tolerance in per site        
+        etol       = self.etol #Energy tolerance in per site        
  
         lastmu = 0.0 
         self.itr = 0
