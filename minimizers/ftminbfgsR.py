@@ -12,6 +12,8 @@ def minimizeBFGSR(dmet, R, gtol = 1.0e-10, miter=1000):
 
     u_mat_imp = utils.extractImp(dmet.Nimp,dmet.u_mat)
     params = dmet.matrix2array( u_mat_imp )
+    Nimp = dmet.Nimp
+    Nbasis = dmet.Nbasis
     
     #TEST
     if(dmet.debugPrintRDMDiff):
@@ -19,14 +21,27 @@ def minimizeBFGSR(dmet, R, gtol = 1.0e-10, miter=1000):
         dmet.dlog.write('Beginning minimization-BFGS\n')
         dmet.dlog.write('==================================================\n')
         dmet.dlog.flush()
+
  
     R = dmet.RotationMatrix
+    sh0 = dmet.h1 + dmet.fock2e
+    sh0_emb = np.dot(R.conj().T, np.dot(sh0, R))
+    Nb = dmet.Nbasis/dmet.Nimp
     def costf(x):
         u_mat_imp = dmet.array2matrix(x)
-        u_mat_ext = dmet.replicate_u_matrix( u_mat_imp )
-        
-        sh = dmet.h1 + dmet.fock2e + u_mat_ext
-        sh_emb = np.dot(R.conj().T, np.dot(sh, R))
+
+        #u_mat_ext = dmet.replicate_u_matrix( u_mat_imp )
+        #sh = dmet.h1 + dmet.fock2e + u_mat_ext
+        #sh_emb = np.dot(R.conj().T, np.dot(sh, R))
+
+        su = np.zeros_like(sh0_emb)
+        for k in range(Nb):
+            Rpu = R[k*Nimp:(k+1)*Nimp]
+            Rpd = R[(Nbasis+k*Nimp):(Nbasis+(k+1)*Nimp)]
+            su += np.dot(Rpu.conj().T, np.dot(u_mat_imp[:Nimp,:Nimp], Rpu))
+            su += np.dot(Rpd.conj().T, np.dot(u_mat_imp[Nimp:,Nimp:], Rpd))
+        sh_emb = sh0_emb + su
+
         hf1RDM_b,_,_,_ = dmet.hfsolver(dmet, dmet.actElCount,sh_emb)
 
         impfit = (hf1RDM_b-dmet.IRDM1)[:dmet.fitIndex,:dmet.fitIndex]
@@ -41,10 +56,19 @@ def minimizeBFGSR(dmet, R, gtol = 1.0e-10, miter=1000):
     def jacf(x):
                                               
         u_mat_imp = dmet.array2matrix(x)
-        u_mat_ext = dmet.replicate_u_matrix( u_mat_imp )
 
+        u_mat_ext = dmet.replicate_u_matrix( u_mat_imp )
         sh = dmet.h1 + dmet.fock2e + u_mat_ext
         sh_emb = np.dot(R.conj().T, np.dot(sh, R))
+
+        #su = np.zeros_like(sh0_emb)
+        #for k in range(Nb):
+        #    Rpu = R[k*Nimp:(k+1)*Nimp]
+        #    Rpd = R[(Nbasis+k*Nimp):(Nbasis+(k+1)*Nimp)]
+        #    su += np.dot(Rpu.conj().T, np.dot(u_mat_imp[:Nimp,:Nimp], Rpu))
+        #    su += np.dot(Rpd.conj().T, np.dot(u_mat_imp[Nimp:,Nimp:], Rpd))
+        #sh_emb = sh0_emb + su
+
         hf1RDM_b,orbs,_,energies = dmet.hfsolver(dmet, dmet.actElCount,sh_emb)
         nb = hf1RDM_b.shape[-1]
         
@@ -116,9 +140,13 @@ def minimizeBFGSR(dmet, R, gtol = 1.0e-10, miter=1000):
 
     #Minimize difference between HF and correlated DMET 1RDMs
     #min_result = minimize( costf, params, method = 'BFGS', jac = jacf , tol = gtol, options={'maxiter': miter})
+    import time
+    t1 = time.time()
     min_result = minimize( costf, params, method = 'BFGS', tol = gtol, options={'maxiter': miter})
+    t2 = time.time()
+    print t2-t1
+
     x = min_result.x
-    
     print "Final Diff: ",min_result.fun,"Converged: ",min_result.status," Jacobian: ",np.linalg.norm(min_result.jac)
     
     if(not min_result.success):
