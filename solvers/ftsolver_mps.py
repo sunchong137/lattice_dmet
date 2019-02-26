@@ -21,7 +21,7 @@ def microIterationMPS(dmet,mu0,R,h_emb,V_emb,targetN,gtol,maxiter=20, tau=0.1,to
     maxm = dmet.MaxMPSM
     tau = dmet.TimeStep
     print "Using finite temperature MPS method."
-    print("tau = %f     maxm = %d      tol=%s\n"%(tau,maxm,str(tol)))
+    print("beta = %0.1f   mu = %0.1f    tau = %f   maxm = %d    tol=%s\n"%(1./dmet.T, mu0, tau,maxm,str(tol)))
     if dmet.T < 1e-3:
         return mps_gs(dmet,mu0,R,h_emb,V_emb,targetN, gtol, maxiter)
     sys.stdout.flush()
@@ -115,10 +115,10 @@ def microIterationMPS(dmet,mu0,R,h_emb,V_emb,targetN,gtol,maxiter=20, tau=0.1,to
             dmet.IRDM1 = Pn
             dmet.IRDM2 = P2n
             dmet.MumB = MumB
+        return mu
     else:
         ndiff = fn(mu0,muc,dn)
         return mu0
 
-    return mu
 
 
