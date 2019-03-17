@@ -36,7 +36,8 @@ def hf_hubbard_calc(dmet,Nelec,Hcore,Porig=None,S=None,itrmax=0, needEnergy=Fals
 
     # HartreeFock procedure for grand-canonical ensemble
     # input: T, mu
-    T = dmet.T
+    #T = dmet.T
+    beta = dmet.beta
     mu = dmet.grandmu
     norb = Hcore.shape[-1]
     #Diagonalize hopping-hamiltonian
@@ -46,10 +47,9 @@ def hf_hubbard_calc(dmet,Nelec,Hcore,Porig=None,S=None,itrmax=0, needEnergy=Fals
     def fermi(mu_):
         return 1./(1.+np.exp((evals-mu_)*beta))
 
-    if T < 1.e-3:
+    if beta > 1e3:
         P, orbs, Enew, evals = zeroThf(Nelec, Hcore, None,needEnergy=needEnergy)
     else:
-        beta = 1./T
         eocc = fermi(mu)
 
         #Form the 1RDM
@@ -70,7 +70,8 @@ def hf_hubbard_calc_Ne(dmet,Nelec,Hcore,Porig=None,S=None,itrmax=0, needEnergy=F
                     gap=None):
     
 
-    T = dmet.T
+    #T = dmet.T
+    beta = dmet.beta
     #Hartree-Fcok procedure for spin alpha
     #If you want the total spin, you should sum up all spins
     norb = Hcore.shape[-1]
@@ -80,12 +81,11 @@ def hf_hubbard_calc_Ne(dmet,Nelec,Hcore,Porig=None,S=None,itrmax=0, needEnergy=F
     #Fermi-Dirac function
     def fermi(mu):
         return 1./(1.+np.exp((evals-mu)*beta))
-    if T < 1.e-2:
+    if beta > 1e3:
         beta = np.inf
         eocc = np.ones(norb)
         eocc[Nelec:] *= 0
     else:
-        beta = 1./T
         # fit mu
         mu0 = 0.
         mu = minimize(lambda x: (np.sum(fermi(x))-Nelec)**2, mu0, tol=1e-6).x

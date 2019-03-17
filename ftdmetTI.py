@@ -21,12 +21,13 @@ import solvers as solver
 import ftmodules
 
 class ftdmet(dmet):
-    def __init__(self, Nbasis, Nelec_tot, Nimp, h1e_site, g2e_site, h1esoc_site=None, SolverType='FCI', u_matrix=None, mtype = np.float64, ctype = 'UHF', globalMu=None, T=0.0, grandMu=0.0, BathOrder=1, maxm=2000, tau=0.1, fix_udiag=False, hbath=False, fitmu=False, utol=5e-6,etol=1e-5,ntol=1e-5):
+    def __init__(self, Nbasis, Nelec_tot, Nimp, h1e_site, g2e_site, h1esoc_site=None, SolverType='FCI', u_matrix=None, mtype = np.float64, ctype = 'UHF', globalMu=None, beta=np.inf, grandMu=0.0, BathOrder=1, maxm=2000, tau=0.1, fix_udiag=False, hbath=False, fitmu=False, utol=5e-6,etol=1e-5,ntol=1e-5):
 
         dmet.__init__(self, Nbasis, Nelec_tot, Nimp, h1e_site, g2e_site, h1esoc_site, SolverType, u_matrix, mtype, ctype, globalMu,utol,etol,ntol)
 
         # add the temperature argument
-        self.T = T
+        self.T = 1./beta
+        self.beta = beta
         self.iformalism = False #will be redefined after declaring the dmet obj
         self.grandmu = grandMu #grand canonical ensemble mu
         self.bath_order = BathOrder # the order of bath
@@ -53,7 +54,7 @@ class ftdmet(dmet):
             self.startMu = self.grandmu
     def displayParameters(self):
         dmet.displayParameters(self)
-        print "Temperature of the system: %4.4f t"%self.T
+        print "Temperature of the system: beta = $0.3f; T = %4.4f t"%(self.beta, self.T)
         print "Chemical potential of the system: ", self.grandmu
 
 ########################################################################################
@@ -297,8 +298,8 @@ class ftdmet(dmet):
             for i in range(2*self.Nimp):
                 netot += corr1RDM[i,i]
 
-            print "T-Double occ (Iform):   %.2f      %.12f"%(self.T, docc)
-            print "T-Ne on impurity:    %.2f      %.12f"%(self.T, netot)
+            print "beta-Double occ (Iform):   %.2f      %.12f"%(self.beta, docc)
+            print "beta-Ne on impurity:    %.2f      %.12f"%(self.beta, netot)
             print '----------------------------------------------------------'
 
             print '----------------------------------------------------------'
@@ -343,8 +344,8 @@ class ftdmet(dmet):
         for i in range(2*self.Nimp):
             netot += rdm1[i,i]
         
-        print "T-Double occ (NIform):   %.4f      %.12f"%(self.T, docc)
-        print "T-Ne on impurity:    %.4f      %.12f"%(self.T, netot)
+        print "beta-Double occ (NIform):   %.4f      %.12f"%(self.beta, docc)
+        print "beta-Ne on impurity:    %.4f      %.12f"%(self.beta, netot)
         print '----------------------------------------------------------'
         print '1 body energy contribution: ', E1/self.Nimp
         print '2 body energy contribution: ', E2/self.Nimp
@@ -552,6 +553,7 @@ class ftdmet(dmet):
         else:
             lastmu = self.misolver(self,lastmu,R,h1body, V_emb, self.Nimp*self.filling*2,gtol,self.corrIter,fitmu=self.fitmu)
         self.muCollection.append(lastmu)
+    
 
         #Calculate the DMET site energy and density of bath
         h_emb = utils.rot1el(self.h1, R)
@@ -584,6 +586,7 @@ class ftdmet(dmet):
         print 'DMET Energy per site: ',Efrag/self.Nimp           
         print "DMET Total Energy: ",Efrag*self.Nbasis/self.Nimp
         print 'T-E-INFO      %0.4f        %0.12f'%(self.T, Efrag/self.Nimp)
+        print 'beta-E-INFO      %0.4f        %0.12f'%(self.beta, Efrag/self.Nimp)
         print
         print "Total density: ",sum(dg)              
         print "Density on impurity: ",impdensity
@@ -621,8 +624,11 @@ class ftdmet(dmet):
         sz = (np.sum(np.diag(self.IRDM1)[:self.Nimp])-np.sum(np.diag(self.IRDM1)[self.Nimp:2*self.Nimp]))/self.Nimp
         nfill = np.sum(np.diag(self.IRDM1)[:2*self.Nimp])/self.Nimp
         print "T-Magnetic order:    %0.4f      %0.12f"%(self.T, magorder)
+        print "beta-Magnetic order:    %0.4f      %0.12f"%(self.beta, magorder)
         print "T-Sz:   %.4f     %0.12f "%(self.T, sz)
+        print "beta-Sz:   %.4f     %0.12f "%(self.beta, sz)
         print "T-filling: %.4f      %0.12f"%(self.T, nfill)
+        print "beta-filling: %.4f      %0.12f"%(self.beta, nfill)
 
         '''
         #Do SITE based energy calculation

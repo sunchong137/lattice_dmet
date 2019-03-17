@@ -17,7 +17,7 @@ def call_ftmps(dmet,h_emb,V_emb,mu,tau=0.01,maxm=1000,tol=1E-7,tmpdir=None,mpsdi
     nimp = dmet.Nimp
     u    = dmet.g2e_site[0]
     #mu   = dmet.grandmu
-    beta = 1./dmet.T
+    beta = dmet.beta
 
     # generate a random string for tmp dir 
     randstr = ''.join([random.choice(string.ascii_letters + string.digits) for n in xrange(6)])
