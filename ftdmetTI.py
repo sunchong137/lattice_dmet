@@ -54,7 +54,7 @@ class ftdmet(dmet):
             self.startMu = self.grandmu
     def displayParameters(self):
         dmet.displayParameters(self)
-        print "Temperature of the system: beta = $0.3f; T = %4.4f t"%(self.beta, self.T)
+        print "Temperature of the system: beta = %0.3f; T = %4.4f t"%(self.beta, self.T)
         print "Chemical potential of the system: ", self.grandmu
 
 ########################################################################################
