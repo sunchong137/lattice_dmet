@@ -25,7 +25,7 @@ def ftimpsolver(dmet, h_emb,V_emb,Norb,mu,Nelec):
     #V2 = (V2_aa, V2_ab, V2_aa)
     
     # solve the impurity problem
-    rdm1, rdm2, e = fted.rdm12s_fted(h1, V_emb, Norb, Nelec, dmet.T, symm=dmet.constrainType, mu=mu)
+    rdm1, rdm2, e = fted.rdm12s_fted(h1, V_emb, Norb, Nelec, dmet.beta, symm=dmet.constrainType, mu=mu)
 
     #np.save("/home/sunchong/test/rdm1s.npy",np.asarray(rdm1))
     #np.save("/home/sunchong/test/rdm2s.npy",np.asarray(rdm2))
@@ -46,17 +46,17 @@ def ftimpsolver(dmet, h_emb,V_emb,Norb,mu,Nelec):
     return RDM1, rdm2, e
     
 ####################################################################################
-def ftlanczos(dmet, h_emb, V_emb, Norb, Nelec):
-
-    h_embn = perm1el(h_emb, dmet.Nimp, tomix=False)
-    h1 = (h_embn[:Norb, :Norb], h_embn[Norb:, Norb:])    
-    rdm1, rdm2, e = ftlan.rdm12s_ftfci(h1, V_emb, Norb, Nelec, dmet.T, mu=dmet.grandmu,m=100, symm=dmet.constrainType)
-    RDM1 = np.zeros_like(h_emb)
-    RDM1[:Norb, :Norb] = rdm1[0].real
-    RDM1[Norb:, Norb:] = rdm1[1].real
-    RDM1 = perm1el(RDM1, dmet.Nimp, tomix=True)
-
-    return RDM1, rdm2, e
+#def ftlanczos(dmet, h_emb, V_emb, Norb, Nelec):
+#
+#    h_embn = perm1el(h_emb, dmet.Nimp, tomix=False)
+#    h1 = (h_embn[:Norb, :Norb], h_embn[Norb:, Norb:])    
+#    rdm1, rdm2, e = ftlan.rdm12s_ftfci(h1, V_emb, Norb, Nelec, dmet.T, mu=dmet.grandmu,m=100, symm=dmet.constrainType)
+#    RDM1 = np.zeros_like(h_emb)
+#    RDM1[:Norb, :Norb] = rdm1[0].real
+#    RDM1[Norb:, Norb:] = rdm1[1].real
+#    RDM1 = perm1el(RDM1, dmet.Nimp, tomix=True)
+#
+#    return RDM1, rdm2, e
 
 ####################################################################################
 

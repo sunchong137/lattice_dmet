@@ -8,7 +8,7 @@ import utils
 sys.path.append('../')
 import ftmodules
 
-def minimizeBFGSR(dmet, R, gtol = 1.0e-10, miter=1000):
+def minimizeBFGSR(dmet, R, gtol = 1.0e-12, miter=1000):
 
     u_mat_imp = utils.extractImp(dmet.Nimp,dmet.u_mat)
     params = dmet.matrix2array( u_mat_imp )
@@ -140,11 +140,7 @@ def minimizeBFGSR(dmet, R, gtol = 1.0e-10, miter=1000):
 
     #Minimize difference between HF and correlated DMET 1RDMs
     #min_result = minimize( costf, params, method = 'BFGS', jac = jacf , tol = gtol, options={'maxiter': miter})
-    import time
-    t1 = time.time()
     min_result = minimize( costf, params, method = 'BFGS', tol = gtol, options={'maxiter': miter})
-    t2 = time.time()
-    print t2-t1
 
     x = min_result.x
     print "Final Diff: ",min_result.fun,"Converged: ",min_result.status," Jacobian: ",np.linalg.norm(min_result.jac)
