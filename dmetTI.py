@@ -1312,7 +1312,7 @@ class dmet:
 
             #Write a table
             ftbl = open(self.tableFile,'a')
-            print >>ftbl,'%3d\t% 16.9e\t%16.9e\t%16.9e\t%16.9e' %(self.itr,self.Efrag,self.ediff,self.critnorm,u_mat_diff)
+            print >>ftbl,'%3d\t% 16.9e\t%16.9e\t%16.9e\t%16.9e' %(self.itr,self.Efrag/self.Nimp,self.ediff,self.critnorm,u_mat_diff)
             ftbl.close()
 
             #If fit is super accurate then no point in continuing with u_matrix update      
