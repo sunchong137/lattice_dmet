@@ -16,6 +16,7 @@ import loggers.simpleLogger as log
 from meanfields import *    
 import minimizers as mmizer 
 import solvers as solver    
+import datetime
 
 # FT modules
 import ftmodules
@@ -56,6 +57,7 @@ class ftdmet(dmet):
         dmet.displayParameters(self)
         print "Temperature of the system: beta = %0.3f; T = %4.4f t"%(self.beta, self.T)
         print "Chemical potential of the system: ", self.grandmu
+        print "Converged calculations are saved to: ", self.convFile
 
 ########################################################################################
     def get_rotmat_svd(self, RDM1, use_ham=False):
@@ -640,6 +642,167 @@ class ftdmet(dmet):
         '''
         self.critnorm = critnorm
         self.Efrag = Efrag 
+
+
+
+    def solve_groundstate( self ):
+
+        self.updateParams()
+        self.displayParameters()
+
+        #DMET loop to converge u-matrix
+        #u tolerances
+        tol        = self.utol * self.Nimp
+        u_mat_diff = tol+1
+        minutol    = self.utol * self.Nimp #Atleast this tolerance is needed in u no matter what
+
+        #rho tolerances
+        ntol       = self.ntol * self.fitIndex
+        self.critnorm   = ntol + 1
+
+        #energy tolerances
+        Efrag0     = 0.0
+        etol       = self.etol #Energy tolerance in per site        
+ 
+        lastmu = 0.0 
+        self.itr = 0
+        self.muCollection = []
+
+        if(self.doDIIS):
+            dc = diis.FDiisContext(self.diisDim)         
+
+        restartStatus = False       
+        if(self.doRestart):
+            restartStatus = self.restart()
+
+        self.initializeFock()       
+
+        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        #Calculate parameter space size << IMPORTANT
+        self.paramss = len(self.matrix2array(np.zeros([self.fitIndex,self.fitIndex])))      
+        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        #Prepare table file
+        if(not os.path.exists(self.tableFile)):
+            ftbl = open(self.tableFile,'a')
+            print >>ftbl,'%4s\t%16s\t%16s\t%16s\t%16s' %('ITR.','DMET Energy','Energy Diff.','RDM Diff.','UMatrix Diff.')
+            ftbl.close()           
+ 
+        while( self.itr < self.dmetitrmax ):
+
+            self.itr += 1
+            
+            print
+            print "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+            print "Starting DMET iteration: ",self.itr    
+            print "Date time: ", str(datetime.datetime.now())[:-7]
+            sys.stdout.flush()              
+
+            if(not restartStatus):
+                #DMET 1: Generate bath
+                h_emb,v_emb,R,rdmCore = self.generateBath()
+
+                #DMET 2: Do correlated problem
+                self.solveCorrProb(h_emb,v_emb,R,rdmCore)
+                self.ediff = abs(self.Efrag-Efrag0)/self.Nimp
+                Efrag0 = self.Efrag
+       
+                #Checkpoint 
+                if(self.chkPoint and self.itr%self.chkPointInterval == 0):
+                    self.checkPoint()
+                                       
+                #DMET 3: Do fitting
+                u_mat_diff = self.solveFitProb(dc)            
+            else:           
+                restartStatus = False
+                
+                if(self.label == 2):
+                    #DMET 1: Generate bath
+                    h_emb,v_emb,R,rdmCore = self.generateBath()
+
+                    #DMET 2: Do correlated problem
+                    self.solveCorrProb(h_emb,v_emb,R,rdmCore)
+                    self.ediff = abs(self.Efrag-Efrag0)/self.Nimp
+                    Efrag0 = self.Efrag
+       
+                    #Checkpoint 
+                    if(self.chkPoint and self.itr%self.chkPointInterval == 0):
+                        self.checkPoint()
+                                           
+                if(self.label >= 1): 
+                    #DMET 3: Do fitting
+                    u_mat_diff = self.solveFitProb(dc)            
+ 
+            ##############################################################################################
+            # TOLERANCE CHECKING
+            ##############################################################################################
+
+            print
+            print "========================================================================="
+            print 'Convergence Criteria Observables:'
+            print "========================================================================="
+            print '*UMatrix Difference = ',u_mat_diff
+            print '*RDM Difference (Bath Fit=%d) = %10.6e' %(self.fitBath,self.critnorm)
+            print '*ENERGY Difference of Fragment = ',self.ediff
+            print 
+            sys.stdout.flush() 
+            
+            ######################################################################
+            # CHECKPOINT
+            ###################################################################### 
+            if(self.chkPoint and self.itr%self.chkPointInterval == 0):
+                self.checkPoint()
+
+            rdmcriteria = False
+            umatrixcriteria = False
+            energycriteria = False
+
+            if(self.critnorm < ntol):
+                rdmcriteria = True
+
+            if(u_mat_diff < minutol):
+                umatrixcriteria = True
+
+            if(self.ediff < etol):
+                energycriteria = True
+
+            print 'Convergence Critera: UMATRIX=%d RDM=%d ENERGY=%d' %(umatrixcriteria,rdmcriteria,energycriteria)
+            print "========================================================================="
+            print 'FINISHED DMET ITERATION ',self.itr
+            print
+
+            #Write a table
+            ftbl = open(self.tableFile,'a')
+            print >>ftbl,'%3d\t% 16.9e\t%16.9e\t%16.9e\t%16.9e' %(self.itr,self.Efrag/self.Nimp,self.ediff,self.critnorm,u_mat_diff)
+            ftbl.close()
+
+            #If fit is super accurate then no point in continuing with u_matrix update      
+            if(umatrixcriteria):
+                with open(self.convFile, 'a') as convf:
+                    convf.write("*** U = %0.1f, mu = %0.1f, T = %0.2f, beta = %0.2f, Nbath = %dxNimp\n"%(self.g2e_site[0],self.grandmu,self.T,self.beta,self.bath_order))
+                break
+       
+        if( self.itr >= self.dmetitrmax ):
+            print "UMATRIX did not converge in less than", self.dmetitrmax, "iterations"
+            
+        print
+        print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+        print "END DMET CALCULATION"
+        print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+        print
+
+        ##############################################################
+        #Checkpoint again
+        ##############################################################
+        self.checkPoint()
+        u_mat_imp = utils.extractImp(self.Nimp,self.u_mat)
+        return self.Efrag, u_mat_imp, self.IRDM1, self.IRDM2
+
+
+
+
+
+
 
 
 

@@ -19,6 +19,8 @@ def ham_hubbard1d(L, t=1.0, tp=0.0,bc='pbc'):
     return h
 
 def ham_hubbard2d(Nx, Ny, Ix, Iy, t=1.0, tp=0.0, bc='pbc'):
+    if bc == 'apbc':
+        raise Exception("Anti-PBC not implemented!")
     Lx   = Nx * Ix
     Ly   = Ny * Iy
     norb = Lx * Ly
