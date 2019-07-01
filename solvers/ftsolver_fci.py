@@ -22,18 +22,11 @@ def microIteration(dmet,mu0,R,h_emb,V_emb,targetN, gtol, maxiter=20,fitmu=False,
             Mum[i+dmet.Nbasis,i+dmet.Nbasis] = -mu
         MumB = np.dot(R.conj().T,np.dot(Mum,R))
     
-        ###############################################################################     
         #Do high level calculation with FCI
-        #Enewn, orbsn = fci.kernel(h_emb+MumB,V_emb,h_emb.shape[0],dmet.actElCount) 
-        #Pn, P2n = fci.make_rdm12(orbsn,h_emb.shape[0],dmet.actElCount)   
-        #Pn, P2n, Enewn = ftmodules.ftimpsolver(dmet,h_emb+MumB,V_emb,h_emb.shape[0]/2,mu,dmet.actElCount)
+        #**************
         Pn, P2n, Enewn = ftmodules.ftimpsolver(dmet,h_emb,V_emb,h_emb.shape[0]/2,mu,dmet.actElCount)
+        #**************
 
-        #Do high level calculation with HF (FOR CHECKING)
-                #Pn, orbsn, Enewn, evalsn = hf.hf_calc(dmet.actElCount,h_emb+MumB,V_emb)
-                #P2n = hf.rdm_2el(Pn)
-        ###############################################################################     
-        
         dg = Pn.diagonal()
         cd = sum(dg[:2*dmet.Nimp])
         
@@ -52,6 +45,7 @@ def microIteration(dmet,mu0,R,h_emb,V_emb,targetN, gtol, maxiter=20,fitmu=False,
 
     muc = []
     dn = []
+    #%%%%%%%%%%%%%%%%%%%
 
     if fitmu:
         print "Figuring out correct chemical potential for target density (on impurity): ",targetN
