@@ -16,7 +16,6 @@ U = float(sys.argv[1])
 T = float(sys.argv[3])
 mu = float(sys.argv[2])
 bathorder=1
-fsfeserewr
 
 #======================================================================
 bdir = '%s/order%d'%(cmtype,bathorder)
