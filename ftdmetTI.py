@@ -51,8 +51,9 @@ class ftdmet(dmet):
             self.misolver = solver.microIterationMPS
         elif(self.solverType=="FCI"):
             self.misolver = solver.microIteration
-        if not self.fitmu:
-            self.startMu = self.grandmu
+        self.startMu = self.grandmu
+        #if not self.fitmu or self.beta < 1e3:
+        #    self.startMu = self.grandmu
     def displayParameters(self):
         dmet.displayParameters(self)
         print "Temperature of the system: beta = %0.3f; T = %4.4f t"%(self.beta, self.T)
@@ -133,8 +134,8 @@ class ftdmet(dmet):
         # generate rotmat from orders of RDM1, i.e., I, RDM1, RDM1**2,..., RDM1**qrpower
         # impurity basis is from I, bath is from RDM1, second order bath from RDM1**2
 
-        #if self.T < 1e-3:
-        #    return self.get_rotmat_svd(RDM1)
+        if self.beta > 1e3:
+            return self.get_rotmat_svd(RDM1)
 
         qrpower = self.bath_order
         Nbasis = self.Nbasis
@@ -162,13 +163,25 @@ class ftdmet(dmet):
 
         mergedQsa = np.hstack(Qsa)
         mergedQsb = np.hstack(Qsb)
-        Qtota, _ = np.linalg.qr(mergedQsa) # re-orthogonalize
-        Qtotb, _ = np.linalg.qr(mergedQsb) 
-        bath_a = Qtota[Nimp:, Nimp:]
-        bath_b = Qtotb[Nimp:, Nimp:]
+        
+        bath_a = mergedQsa[Nimp:, Nimp:]
+        bath_b = mergedQsb[Nimp:, Nimp:]
 
-        lba = Qtota.shape[-1]
-        lbb = Qtotb.shape[-1]
+        bath_a = la.orth(bath_a)  # remove linear dependence
+        bath_b = la.orth(bath_b)  # remove linear dependence
+        lba = Nimp + bath_a.shape[-1]
+        lbb = Nimp + bath_b.shape[-1]
+         
+        
+        
+        #old implementation
+        #Qtota, _ = np.linalg.qr(mergedQsa) # re-orthogonalize
+        #Qtotb, _ = np.linalg.qr(mergedQsb) 
+        #bath_a = Qtota[Nimp:, Nimp:]
+        #bath_b = Qtotb[Nimp:, Nimp:]
+        #lba = Qtota.shape[-1]
+        #lbb = Qtotb.shape[-1]
+        #done
 
         Nemb = lba + lbb # including the impurity orbs
 
@@ -178,6 +191,7 @@ class ftdmet(dmet):
         rotmat[Nbasis:Nimp+Nbasis,Nimp:2*Nimp] = np.eye(Nimp)
         rotmat[Nimp:Nbasis,2*Nimp:(Nimp + lba)] = bath_a #Qtota[Nimp:, Nimp:]
         rotmat[(Nbasis+Nimp):Nbasis+Nbasis,(Nimp+lba):] = bath_b #Qtotb[Nimp:, Nimp:]
+
 
 
         #np.set_printoptions(3, linewidth=1000)
@@ -260,6 +274,8 @@ class ftdmet(dmet):
             for i in range(self.Nimp):
                 V_ab[i,i,i,i] = self.g2e_site[0]
             V_emb = (V_aa, V_ab, V_aa)
+        #np.set_printoptions(linewidth=1000)
+        #print h_emb
 
         return h_emb, V_emb
     #####################################################################
