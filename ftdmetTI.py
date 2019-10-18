@@ -40,6 +40,8 @@ class ftdmet(dmet):
         #self.minimize_u_matrix = mmizer.minimizeBFGS
         self.hbath = hbath
         self.fitmu = fitmu
+        self.impdensity = Nimp
+        self.magorder = 0.0
         if fix_udiag:
             #self.minimize_u_matrix = mmizer.minimizeBFGS_fixdiag 
             self.minimize_u_matrix = mmizer.minimizelsq_fixdiag
@@ -590,6 +592,7 @@ class ftdmet(dmet):
             impnup = sum(dg[:self.Nimp])
             impndn = self.Nimp - sum(dg[self.Nimp:self.Nimp*2])
             impdensity = impnup+impndn
+            self.impdensity = impdensity
             
             nb = (R.shape[1] - 2*self.Nimp)/2
             bathdensity = sum(dg[2*self.Nimp:])
@@ -639,6 +642,7 @@ class ftdmet(dmet):
         utils.displayMatrix(self.IRDM1[:2*self.Nimp,:2*self.Nimp])
         print
         magorder = abs(self.IRDM1[1,1]-self.IRDM1[0,0])/2.  
+        self.magorder = magorder
         sz = (np.sum(np.diag(self.IRDM1)[:self.Nimp])-np.sum(np.diag(self.IRDM1)[self.Nimp:2*self.Nimp]))/self.Nimp
         nfill = np.sum(np.diag(self.IRDM1)[:2*self.Nimp])/self.Nimp
         print "T-Magnetic order:    %0.4f      %0.12f"%(self.T, magorder)
@@ -703,6 +707,12 @@ class ftdmet(dmet):
             ftbl = open(self.tableFile,'a')
             print >>ftbl,'%4s\t%16s\t%16s\t%16s\t%16s' %('ITR.','DMET Energy','Energy Diff.','RDM Diff.','UMatrix Diff.')
             ftbl.close()           
+
+        #Summarization 
+        vflags = ["Iter", "Nelec", "Energy", "Magnet"]
+        dflags = [ "Iter",  "dE", "dRDM", "dUMAT"]
+        vsummary = []
+        dsummary = []
  
         while( self.itr < self.dmetitrmax ):
 
@@ -792,6 +802,9 @@ class ftdmet(dmet):
             print >>ftbl,'%3d\t% 16.9e\t%16.9e\t%16.9e\t%16.9e' %(self.itr,self.Efrag/self.Nimp,self.ediff,self.critnorm,u_mat_diff)
             ftbl.close()
 
+            vsummary.append([self.itr, self.impdensity, self.Efrag/self.Nimp, self.magorder])
+            dsummary.append([self.itr, self.ediff,self.critnorm,u_mat_diff])
+
             #If fit is super accurate then no point in continuing with u_matrix update      
             if(umatrixcriteria):
                 with open(self.convFile, 'a') as convf:
@@ -806,6 +819,19 @@ class ftdmet(dmet):
         print "END DMET CALCULATION"
         print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
         print
+
+        vframeu = "="*20 + " SUMMARY OF THE QUANTATIES " + "="*20
+        #vframed = "="*len(vframeu) 
+        dframeu = "="*20 + " SUMMARY OF THE CONVERGENCE " + "="*19
+        dframed = "="*len(dframeu) 
+        
+        print vframeu
+        log.print_summary(vflags, vsummary)
+        print
+        print dframeu
+        log.print_summary(dflags, dsummary)
+        print dframed
+        
 
         ##############################################################
         #Checkpoint again
