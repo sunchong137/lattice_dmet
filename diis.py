@@ -86,11 +86,11 @@ class FDiisContext:
         self.NotApplied = False
 
         def PrintVec(s,T):
-            print "!x DIIS: %-10s = %s ..." % (s, " ".join(["%12.6f" % o for o in T[:10]]))
+            print("!x DIIS: %-10s = %s ..." % (s, " ".join(["%12.6f" % o for o in T[:10]])))
         if self.DbgPrint:
             PrintVec("Input T", T)
             PrintVec("Input R", R)
-            print "History:"
+            print("History:")
             for i in range(self.nDim):
                 PrintVec("Amps[%i]" % i, self.Amps[:,i])
             for i in range(self.nDim):
@@ -125,8 +125,8 @@ class FDiisContext:
         Errs1 = self.Errs[:,:nDim]
         B0 = dot(conj(Errs1.T),Errs1)
         if self.DbgPrint:
-            print "\n -- DIIS SYSTEM:"
-            print "B0 = \n", B0
+            print("\n -- DIIS SYSTEM:")
+            print("B0 = \n", B0)
 
         B = zeros((nDim+1,nDim+1),B0.dtype)
         B[:nDim,:nDim] = B0
@@ -141,29 +141,29 @@ class FDiisContext:
         rhs[nDim] = -1.
         B[nDim,nDim] = 0.
         if False:
-            print "\n -- DIIS SYSTEM:"
-            print "B = \n", B
-            print "RHS = \n", rhs
-            print "fScale = %8.2e" % fScale
+            print("\n -- DIIS SYSTEM:")
+            print("B = \n", B)
+            print("RHS = \n", rhs)
+            print("fScale = %8.2e" % fScale)
 
         if 1:
             # straight diis
             try:
                 c1 = solve(B, rhs)
-            except LinAlgError,e:
+            except LinAlgError:
                 # I don't think that this is supposed to happen here.
-                print "diis: resorted to lstsq..."
+                print("diis: resorted to lstsq...")
                 (c1,fitresid,rank,sigma) = lstsq(B, rhs)
         else:
             ew,ev = eigh(B[:-1,:-1])
             c1 = array(list(ev[:,0]) + [ew[0]])
         c = c1[:-1]
         if self.DbgPrint or False:
-            print "B = \n", B
-            print "RHS = \n", rhs
-            print "C = \n", c
-            print "c1[-1] = %8.2e" % c1[-1]
-            print "fScale = %8.2e" % fScale
+            print("B = \n", B)
+            print("RHS = \n", rhs)
+            print("C = \n", c)
+            print("c1[-1] = %8.2e" % c1[-1])
+            print("fScale = %8.2e" % fScale)
 
         c /= sum(c) # might have cut out some weight in overlap truncation.
         #print "c[iThis] = %8.2e" % c[iThis]

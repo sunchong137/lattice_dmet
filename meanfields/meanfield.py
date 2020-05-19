@@ -16,37 +16,37 @@ def ni_calc(Nelec,Hcore,vcorr,gs, S=None, needEnergy = False, display=True, muFi
         S = np.identity(Hcore.shape[0])
 
     L = Hcore.shape[0]/2
-	
+    
     def muCreate(mu):
         M = np.zeros_like(Hcore,dtype=np.float64)
         np.fill_diagonal(M[:L,:L],-mu)
-        np.fill_diagonal(M[L:,L:],mu)	
-    	return M
+        np.fill_diagonal(M[L:,L:],mu)    
+        return M
 
     def mufit(mu):
         H = Hcore + vcorr + muCreate(mu)
         evals,orbs = diagonalize(H,S)
-	
+    
         rho = np.dot(orbs[:,:L],orbs[:,:L].conjugate().T);
         cndn = L-np.trace(rho[L:,L:])
         cnup = np.trace(rho[:L,:L])
         cne = cndn+cnup
-	
-#    	for i in range(orbs.shape[1]):
+    
+#        for i in range(orbs.shape[1]):
 #            ne = np.dot(orbs[:dL,i],orbs[:dL,i].conjugate())
-# 	    nh = np.dot(orbs[dL:,i],orbs[dL:,i].conjugate())
+#         nh = np.dot(orbs[dL:,i],orbs[dL:,i].conjugate())
 #           print "orbital ",i," np = ",ne," nh = ",nh," Energy = ",evals[i]
         if(display):
-            print "mu: ",mu," N = ",cne," Nup = ",cnup," Ndn = ",cndn,' gap = ',evals[L],' energy = ',bcsEnergy(Hcore,vcorr,rho)
+            print("mu: ",mu," N = ",cne," Nup = ",cnup," Ndn = ",cndn,' gap = ',evals[L],' energy = ',bcsEnergy(Hcore,vcorr,rho))
             sys.stdout.flush()
-#	print
+#    print
         dne = cne - Nelec*1.0
-    	return dne
+        return dne
 
     if(muFind):
         success = False
         delta = 0.5
-	offset = delta*gs[0]
+        offset = delta*gs[0]
         while(not success):
             try:
                 #mu = newton(mufit,delta*gs[0],tol=1.0e-4)
@@ -55,9 +55,9 @@ def ni_calc(Nelec,Hcore,vcorr,gs, S=None, needEnergy = False, display=True, muFi
             except ValueError:
                 delta += 0.5
         M = muCreate(mu) 
-        H = Hcore + vcorr + M		
+        H = Hcore + vcorr + M  
     else:
-        H = Hcore + vcorr 		
+        H = Hcore + vcorr   
         M = np.zeros_like(H)
  
     evals,orbs = diagonalize(H,S)   
@@ -70,9 +70,9 @@ def ni_calc(Nelec,Hcore,vcorr,gs, S=None, needEnergy = False, display=True, muFi
     cne = cndn+cnup
 
     if(display and muFind):
-        print "F mu: ",mu," cne: ",cne
+        print("F mu: ",mu," cne: ",cne)
 
-    '''	
+    '''    
     displayMatrix(H)
     ro = extractImp(4,rho)
     displayMatrix(ro)
@@ -83,7 +83,7 @@ def ni_calc(Nelec,Hcore,vcorr,gs, S=None, needEnergy = False, display=True, muFi
         Enew = bcsEnergy(Hcore,vcorr,rho)
     else:
         Enew = 0.0
-	
+    
     return M,rho,orbs,Enew,evals
 #####################################################################
 
@@ -101,44 +101,44 @@ def bcsEnergy(Hcore,Vcorr,rho):
 
 #####################################################################
 def rdmToArray(P, symmetry='HERM'):
-	
+    
     #The most basic is Hermitian Symmetry
     a = [P[i,i].real for i in range(P.shape[0])]
     a += [P[i,j].real for i in range(P.shape[0]) for j in range(i+1,P.shape[1])]
     if(np.iscomplexobj(P)):
-	a += [P[i,j].imag for i in range(P.shape[0]) for j in range(i+1,P.shape[1])] 
+        a += [P[i,j].imag for i in range(P.shape[0]) for j in range(i+1,P.shape[1])] 
     return np.array(a)
-				
+                
 def arrayTordm(P, array, symmetry='HERM'):
 
     p = 0
     offset = P.shape[0]*(P.shape[0]-1)/2
-    obj = np.zeros_like(P)	 
+    obj = np.zeros_like(P)     
     if(np.iscomplexobj(P)):
 
-	for i in range(P.shape[0]):
-	    obj[i,i] = complex(array[p],0.0)
-	    p += 1
-
         for i in range(P.shape[0]):
-   	    for j in range(i+1,P.shape[1]):	
-		obj[i,j] = complex(array[p],array[p+offset])
-		obj[j,i] = complex(array[p],-array[p+offset])	
-		p += 1
+            obj[i,i] = complex(array[p],0.0)
+            p += 1
+
+            for i in range(P.shape[0]):
+               for j in range(i+1,P.shape[1]):    
+                    obj[i,j] = complex(array[p],array[p+offset])
+                    obj[j,i] = complex(array[p],-array[p+offset])    
+                    p += 1
     else:
 
-	for i in range(P.shape[0]):
-	    obj[i,i] = array[p]
-	    p += 1
-	
         for i in range(P.shape[0]):
-   	    for j in range(i+1,P.shape[1]):	
-		obj[i,j] = array[p]
-		obj[j,i] = array[p]
-		p += 1
+            obj[i,i] = array[p]
+            p += 1
+        
+            for i in range(P.shape[0]):
+               for j in range(i+1,P.shape[1]):    
+                    obj[i,j] = array[p]
+                    obj[j,i] = array[p]
+                    p += 1
 
     return obj
-	
+    
 #####################################################################
 def rdm_1el(C,Ne):
     #subroutine that calculates and returns the one-electron density matrix
@@ -158,7 +158,7 @@ def rdm_2el(P):
         for j in range(0,norb):
             for k in range(0,norb):
                 for l in range(0,norb):
-		    P2[i,l,j,k] = P[i,l]*P[j,k] - P[i,k]*P[j,l]
+                    P2[i,l,j,k] = P[i,l]*P[j,k] - P[i,k]*P[j,l]
 
     return P2 
 
@@ -170,15 +170,15 @@ def make_h2el(g,P):
 
     h2el = np.zeros_like(P,dtype=P.dtype)
     if(g.shape[0] == 2):
-    	nb = P.shape[0]/2
+        nb = P.shape[0]/2
         np.fill_diagonal(h2el[:nb,:nb], -P[nb:,nb:].diagonal()*g[0])
         np.fill_diagonal(h2el[nb:,nb:], -P[:nb,:nb].diagonal()*g[0])
 
-	#Below is NOT part of standard hubbard model
-	#np.fill_diagonal(h2el[:nb,nb:], P[nb:,:nb].diagonal() ,-g[0])
-	#np.fill_diagonal(h2el[nb:,:nb], P[:nb,nb:].diagonal() ,-g[0])	
+    #Below is NOT part of standard hubbard model
+    #np.fill_diagonal(h2el[:nb,nb:], P[nb:,:nb].diagonal() ,-g[0])
+    #np.fill_diagonal(h2el[nb:,:nb], P[:nb,nb:].diagonal() ,-g[0])    
     else:
-	assert(1==2)
+        assert(1==2)
         Jij = np.zeros_like(P)
         Xij = np.zeros_like(P)
     

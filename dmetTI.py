@@ -227,43 +227,43 @@ class dmet:
         #####################################################################
     
     def displayParameters(self):
-        print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-        print "BEGIN DMET CALCULATION"
-        print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-        print
-        print "STARTING PARAMETERS:"
-        print
-        print "Calculation type: ",self.constrainType
-        print "Data type: ",self.mtype
-        print "Interacting Formalism: ",self.iformalism
-        print
-        print "Total number of physical sites     = ",self.Nbasis
-        print "Number of physical impurity sites  = ",self.Nimp
-        print "Total number of electrons: ",self.Nelec_tot
-        print "Filling (in per orbital): ",self.filling             
-        print
-        print "Solver: ",self.misolver
-        print "Fitting bath: ",self.fitBath
-        print
-        print "Do main HF self-consistently: ",self.doMainHFSelfConsistently
-        print "Max main HF iterations: ",self.mfIter
-        print "Do search HF self-consistently: ",self.doSearchHFSelfConsistently
-        print "Max search HF iterations: ",self.searchIter
-        print
-        print "Main HF Solver: ",self.mhfsolver
-        print "Fitting HF Solver: ",self.hfsolver
-        print "--------------------------------------------------------"
-        print "Checkpoint file: ",self.chkPointFile
-        print "Dynamic chem. pot file: ",self.muFileName
-        print "--------------------------------------------------------"
-        print "DIIS: ",self.doDIIS
-        print "DIIS Start: ",self.diisStart
-        print "DIIS Dim: ",self.diisDim
-        print "--------------------------------------------------------"
-        print 'Correlation Potential: '
+        print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        print("BEGIN DMET CALCULATION")
+        print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        print()
+        print("STARTING PARAMETERS:")
+        print()
+        print("Calculation type: ",self.constrainType)
+        print("Data type: ",self.mtype)
+        print("Interacting Formalism: ",self.iformalism)
+        print()
+        print("Total number of physical sites     = ",self.Nbasis)
+        print("Number of physical impurity sites  = ",self.Nimp)
+        print("Total number of electrons: ",self.Nelec_tot)
+        print("Filling (in per orbital): ",self.filling)         
+        print()
+        print("Solver: ",self.misolver)
+        print("Fitting bath: ",self.fitBath)
+        print()
+        print("Do main HF self-consistently: ",self.doMainHFSelfConsistently)
+        print("Max main HF iterations: ",self.mfIter)
+        print("Do search HF self-consistently: ",self.doSearchHFSelfConsistently)
+        print("Max search HF iterations: ",self.searchIter)
+        print()
+        print("Main HF Solver: ",self.mhfsolver)
+        print("Fitting HF Solver: ",self.hfsolver)
+        print("--------------------------------------------------------")
+        print("Checkpoint file: ",self.chkPointFile)
+        print("Dynamic chem. pot file: ",self.muFileName)
+        print("--------------------------------------------------------")
+        print("DIIS: ",self.doDIIS)
+        print("DIIS Start: ",self.diisStart)
+        print("DIIS Dim: ",self.diisDim)
+        print("--------------------------------------------------------")
+        print('Correlation Potential: ')
         eo = utils.extractImp(self.Nimp,self.u_mat)
         utils.displayMatrix(eo)
-        print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+        print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
         sys.stdout.flush() 
     
@@ -286,14 +286,14 @@ class dmet:
         #diagonalize environment 1RDM to define bath orbitals w/evals btwn 0 and 2, and core orbitals w/evals=2
         evals, evecs = la.eigh( env1RDM )
              
-        print "SETTING UP ROTATION MATRIX"
+        print("SETTING UP ROTATION MATRIX")
         #print "Eigenvalues: ",evals, 
-        print "Sum: ",sum(evals)        
+        print("Sum: ",sum(evals))
 
         if(self.constrainType=='BCS'):        
-            print "Nup in env: ",np.trace(env1RDM[:ne,:ne])
-            print "Anti-Ndn in env: ",np.trace(env1RDM[ne:,ne:])
-            print "Ndn in env: ",ne-np.trace(env1RDM[ne:,ne:])
+            print("Nup in env: ",np.trace(env1RDM[:ne,:ne]))
+            print("Anti-Ndn in env: ",np.trace(env1RDM[ne:,ne:]))
+            print("Ndn in env: ",ne-np.trace(env1RDM[ne:,ne:]))
 
         #remove environment orbitals with zero occupancy (virtual space) and core orbitals w/evals=2, leaving only bath
         #Have to be very careful with this since SU(2) broken but still try too keep in paired format
@@ -317,16 +317,16 @@ class dmet:
         #print 'B',bathsites       
         coresites = [pos for pos in remainingsites if (pos not in bathsites)]
          
-        print 'Virtuals: ',len(virtualsites)
-        print 'Bath: ',len(bathsites)
-        print 'Core: ',len(coresites)
+        print('Virtuals: ',len(virtualsites))
+        print('Bath: ',len(bathsites))
+        print('Core: ',len(coresites))
          
         self.actElCount = self.Nelec_tot - len(coresites)
         if(self.constrainType=='BCS'):
             self.actElCount = len(bathsites)
-            print 'Active quasi-particle count: ',self.actElCount
+            print('Active quasi-particle count: ',self.actElCount)
         else:
-            print 'Active particle count: ',self.actElCount
+            print('Active particle count: ',self.actElCount)
             
         #Create core in site basis
         coreevect = evecs[:,coresites]
@@ -336,9 +336,9 @@ class dmet:
         rdmCsite = np.dot(temp,temp.conj().T)
         
         if(self.constrainType=='BCS'):        
-            print "Nup in core: ",np.trace(rdmCsite[:self.Nbasis,:self.Nbasis])
+            print("Nup in core: ",np.trace(rdmCsite[:self.Nbasis,:self.Nbasis]))
             #print "anti-Ndn in core: ",ne-np.trace(env1RDM[ne:,ne:])-np.trace(rdmCsite[self.Nbasis:,self.Nbasis:])
-            print "anti-Ndn in core: ",np.trace(rdmCsite[self.Nbasis:,self.Nbasis:])
+            print("anti-Ndn in core: ",np.trace(rdmCsite[self.Nbasis:,self.Nbasis:]))
            
         #form rotation matrix consisting of unit vectors for impurity and eigenvectors for just bath ( no core )
         evecs = evecs[:,bathsites]
@@ -777,12 +777,12 @@ class dmet:
         if(fname is None):
             fname = self.resFile
         
-        print "Attempting restart with: ",fname
+        print("Attempting restart with: ",fname)
 
         if(os.path.isfile(fname)): 
-            print '===================================================' 
-            print 'Restarting'
-            print '===================================================' 
+            print('===================================================')
+            print('Restarting')
+            print('===================================================')
          
             f = h5py.File(fname,'r')
 
@@ -792,7 +792,7 @@ class dmet:
                 try:
                     mmr = f.get(basename + '.r')[:]
                     mmi = f.get(basename + '.i')[:]
-                    mm = np.array(map(lambda (a,b): a+1j*b,zip(mmr,mmi)))
+                    mm = np.array(map(lambda a,b: a+1j*b,zip(mmr,mmi)))
                 except TypeError:
                     mm = np.array(f.get(basename + '.r')[:]) 
                 mm = np.reshape(mm,s)
@@ -821,12 +821,12 @@ class dmet:
  
             f.close()   
  
-            print 'Iteration: ',self.itr
-            print 'Label: ',self.label
-            print 'Correlation Potential: '
+            print('Iteration: ',self.itr)
+            print('Label: ',self.label)
+            print('Correlation Potential: ')
             eo = utils.extractImp(self.Nimp,self.u_mat)
             utils.displayMatrix(eo)
-            print '===================================================' 
+            print('===================================================' )
 
             #Do adjustments for correct restart
             '''
@@ -844,11 +844,11 @@ class dmet:
 
     def generateBath(self):
             
-        print
-        print "========================================================================="
-        print "STARTING MF PROBLEM:"
-        print "========================================================================="
-        print
+        print()
+        print("=========================================================================")
+        print("STARTING MF PROBLEM:")
+        print("=========================================================================")
+        print()
 
         self.label = 0
 
@@ -889,23 +889,23 @@ class dmet:
 
         print    
         #print "HF orbital energies: ",hfevals
-        print "HF Time: ",hftime
-        print "HF Energy: ",hfE
-        print "Hartree Fock Energy per site: ", hfE/self.Nbasis            
-        print "Trace of RDM: ", self.hf1RDM_site.trace()
-        print "Target trace of RDM: ", self.Nelec_tot
+        print("HF Time: ",hftime)
+        print("HF Energy: ",hfE)
+        print("Hartree Fock Energy per site: ", hfE/self.Nbasis)
+        print("Trace of RDM: ", self.hf1RDM_site.trace())
+        print("Target trace of RDM: ", self.Nelec_tot)
 
         if(self.constrainType=='BCS'):
             hfgap = hfevals[self.Nbasis] - hfevals[self.Nbasis-1]
-            print "LUMO Energy: ",hfevals[self.Nbasis]
-            print "HOMO Energy: ",hfevals[self.Nbasis-1] 
-            print "LUMO-HOMO: ",hfgap
+            print("LUMO Energy: ",hfevals[self.Nbasis])
+            print("HOMO Energy: ",hfevals[self.Nbasis-1]) 
+            print("LUMO-HOMO: ",hfgap)
             self.hfgap = hfgap #Important will be used to prevent certain search valleys 
         else: 
             hfgap = hfevals[self.Nelec_tot] - hfevals[self.Nelec_tot-1]
-            print "LUMO Energy: ",hfevals[self.Nelec_tot]
-            print "HOMO Energy: ",hfevals[self.Nelec_tot-1] 
-            print "LUMO-HOMO: ",hfgap
+            print("LUMO Energy: ",hfevals[self.Nelec_tot])
+            print("HOMO Energy: ",hfevals[self.Nelec_tot-1]) 
+            print("LUMO-HOMO: ",hfgap)
             self.hfgap = hfgap #Important will be used to prevent certain search valleys 
         sys.stdout.flush() 
  
@@ -948,14 +948,14 @@ class dmet:
 
     def solveCorrProb(self,h_emb,V_emb,R,rdmCore):
     
-        print
-        print "========================================================================="
-        print "STARTING CORRELATED PROBLEM:"
-        print "========================================================================="
-        print
-        print "Active space size: ",h_emb.shape[0]
-        print "No. of electrons in space: ",self.actElCount 
-        print "Size of reduced space: ",R.shape[1]
+        print()
+        print("=========================================================================")
+        print("STARTING CORRELATED PROBLEM:")
+        print("=========================================================================")
+        print()
+        print("Active space size: ",h_emb.shape[0])
+        print("No. of electrons in space: ",self.actElCount)
+        print("Size of reduced space: ",R.shape[1])
        
         self.label = 1
  
@@ -1020,45 +1020,45 @@ class dmet:
             bathdensity = sum(dg[2*self.Nimp:])
             coredensity = np.trace(self.rdmCore)
                                        
-        print 
-        print '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^'
-        print 'ENERGY Statistics:'
-        print '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^'
-        print
-        print 'FCI variational energy: ',self.ImpurityEnergy
-        print 'DMET Energy per site: ',Efrag/self.Nimp           
-        print "DMET Total Energy: ",Efrag*self.Nbasis/self.Nimp
-        print
-        print "Total density: ",sum(dg)              
-        print "Density on impurity: ",impdensity
-        print
+        print()
+        print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+        print('ENERGY Statistics:')
+        print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+        print()
+        print('FCI variational energy: ',self.ImpurityEnergy)
+        print('DMET Energy per site: ',Efrag/self.Nimp)    
+        print("DMET Total Energy: ",Efrag*self.Nbasis/self.Nimp)
+        print()
+        print("Total density: ",sum(dg))
+        print("Density on impurity: ",impdensity)
+        print()
 
         if(self.constrainType=='BCS'):
-            print "Bath density: ",bathdensity," Core density: ",coredensity              
-            print "Density on impurity: up = ",impnup," dn = ",impndn," total = ",impdensity
-            print            
+            print("Bath density: ",bathdensity," Core density: ",coredensity)
+            print("Density on impurity: up = ",impnup," dn = ",impndn," total = ",impdensity)
+            print()
 
         hf1RDM_b = np.dot(R.conjugate().T,np.dot(self.hf1RDM_site - rdmCore,R))
         rdmdiff = (hf1RDM_b-self.IRDM1)[:2*self.Nimp,:2*self.Nimp]           
         impuritynorm = np.linalg.norm(rdmdiff)
         fullnorm = np.linalg.norm(hf1RDM_b-self.IRDM1) 
         critnorm = np.linalg.norm((hf1RDM_b-self.IRDM1)[:self.fitIndex,:self.fitIndex])
-        print '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^'
-        print "RDM Statistics:"
-        print '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^'
-        print
-        print "Difference in HF RDM and Corr RDM before fit: ",impuritynorm
-        print "Bath + Impurity HF RDM and Corr RDM before fit: ",fullnorm
-        print 
+        print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+        print("RDM Statistics:")
+        print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+        print()
+        print("Difference in HF RDM and Corr RDM before fit: ",impuritynorm)
+        print("Bath + Impurity HF RDM and Corr RDM before fit: ",fullnorm)
+        print()
 
         sys.stdout.flush() 
 
-        print "HF Impurity RDM"
+        print("HF Impurity RDM")
         ro = utils.extractImp(self.Nimp,self.hf1RDM_site)
         utils.displayMatrix(ro)
-        print
+        print()
 
-        print "I-RDM:"  
+        print("I-RDM:")
         utils.displayMatrix(self.IRDM1[:2*self.Nimp,:2*self.Nimp])  
 
         '''
@@ -1075,10 +1075,10 @@ class dmet:
 
     def solveFitProb(self, dc):
 
-        print
-        print "========================================================================="
-        print "STARTING FITTING PROBLEM:"
-        print "========================================================================="
+        print()
+        print("=========================================================================")
+        print("STARTING FITTING PROBLEM:")
+        print("=========================================================================")
 
         self.label = 2        
 
@@ -1100,7 +1100,7 @@ class dmet:
             skipDiis = not (self.itr>=self.diisStart and np.linalg.norm(diffcorr) < 0.01*len(diffcorr) and self.critnorm < 1e-2*len(diffcorr))
             pvcor, _, _ = dc.Apply(vcor_new,diffcorr, Skip = skipDiis)
             if(not skipDiis):
-                print "DIIS GUESS USED"
+                print("DIIS GUESS USED")
                 self.u_mat_new = self.replicate_u_matrix(self.array2matrix(pvcor))  
 
         #DAMP
@@ -1138,20 +1138,19 @@ class dmet:
         #u_mat_diff = np.linalg.norm(nodgs) + np.linalg.norm(dgs)
         u_mat_diff = nomdg_norm
 
-        print
-        print '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^'
-        print 'UMATRIX Statistics'
-        print '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^'
-        print 'Current value of difference in UMATRIX = ',u_mat_diff
-        #print 'Diagonal difference in u-MATRIX (w/o shifts) = ',np.linalg.norm(dgs)
-        print 'Off-diagonal difference in UMATRIX = ',nomdg_norm
-        print 'SOC difference w/o diagonal = ',nosocdg_norm
-        print 'Full difference in UMATRIX = ',np.linalg.norm(udiff)
-        print 'Time to find new UMATRIX = ',time_for_umat
-        print 
-        print 'New UMATRIX: '
+        print()
+        print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+        print('UMATRIX Statistics')
+        print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+        print('Current value of difference in UMATRIX = ',u_mat_diff)
+        print('Off-diagonal difference in UMATRIX = ',nomdg_norm)
+        print('SOC difference w/o diagonal = ',nosocdg_norm)
+        print('Full difference in UMATRIX = ',np.linalg.norm(udiff))
+        print('Time to find new UMATRIX = ',time_for_umat)
+        print()
+        print('New UMATRIX: ')
         utils.displayMatrix(eo)
-        print 'T-Umatrix: alpha= %.12f     beta=%.12f'%(eo[0,0], eo[self.Nimp, self.Nimp])
+        print('T-Umatrix: alpha= %.12f     beta=%.12f'%(eo[0,0], eo[self.Nimp, self.Nimp]))
 
         return u_mat_diff
 
@@ -1159,27 +1158,27 @@ class dmet:
         
         #Do one set of HF calculations
         if (False): 
-            print
-            print "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-            print "Zero-th HF iteration: "    
+            print()
+            print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+            print("Zero-th HF iteration: ")
             
             h_site_mod = self.h1 + self.u_mat 
             self.hf1RDM_site, hforbs, hfE, hfevals = hf.hf_calc(self.Nelec_tot, h_site_mod, self.g2e_site, itrmax = self.mfIter, needEnergy = True, assertcheck = False, doDIIS = True, hfoscitr = self.oscIter)
 
             self.fock2e = hf.make_h2el(self.g2e_site, self.hf1RDM_site)
 
-            print "HF Energy: ",hfE
-            print "Hartree Fock Energy per site: ", hfE/self.Nbasis            
-            print "Trace of RDM: ", self.hf1RDM_site.trace()
+            print("HF Energy: ",hfE)
+            print("Hartree Fock Energy per site: ", hfE/self.Nbasis)   
+            print("Trace of RDM: ", self.hf1RDM_site.trace())
          
             hfgap = hfevals[self.Nelec_tot] - hfevals[self.Nelec_tot-1]
-            print "LUMO Energy: ",hfevals[self.Nelec_tot]
-            print "HOMO Energy: ",hfevals[self.Nelec_tot-1] 
-            print "LUMO-HOMO: ",hfgap
+            print("LUMO Energy: ",hfevals[self.Nelec_tot])
+            print("HOMO Energy: ",hfevals[self.Nelec_tot-1]) 
+            print("LUMO-HOMO: ",hfgap)
 
             import transform        
             transform.makePlot(h_site_mod,self.Nimp,self.Nelec_tot,'save_hf.png') 
-            print "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+            print( "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
         else:
             self.fock2e = 0
         
@@ -1231,10 +1230,10 @@ class dmet:
 
             self.itr += 1
             
-            print
-            print "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-            print "Starting DMET iteration: ",self.itr    
-            print "Date time: ", str(datetime.datetime.now())[:-7]
+            print()
+            print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+            print("Starting DMET iteration: ",self.itr)
+            print("Date time: ", str(datetime.datetime.now())[:-7])
             sys.stdout.flush()              
 
             if(not restartStatus):
@@ -1276,14 +1275,14 @@ class dmet:
             # TOLERANCE CHECKING
             ##############################################################################################
 
-            print
-            print "========================================================================="
-            print 'Convergence Criteria Observables:'
-            print "========================================================================="
-            print '*UMatrix Difference = ',u_mat_diff
-            print '*RDM Difference (Bath Fit=%d) = %10.6e' %(self.fitBath,self.critnorm)
-            print '*ENERGY Difference of Fragment = ',self.ediff
-            print 
+            print()
+            print("=========================================================================")
+            print('Convergence Criteria Observables:')
+            print("=========================================================================")
+            print('*UMatrix Difference = ',u_mat_diff)
+            print('*RDM Difference (Bath Fit=%d) = %10.6e' %(self.fitBath,self.critnorm))
+            print('*ENERGY Difference of Fragment = ',self.ediff)
+            print()
             sys.stdout.flush() 
             
             ######################################################################
@@ -1305,10 +1304,10 @@ class dmet:
             if(self.ediff < etol):
                 energycriteria = True
 
-            print 'Convergence Critera: UMATRIX=%d RDM=%d ENERGY=%d' %(umatrixcriteria,rdmcriteria,energycriteria)
-            print "========================================================================="
-            print 'FINISHED DMET ITERATION ',self.itr
-            print
+            print('Convergence Critera: UMATRIX=%d RDM=%d ENERGY=%d' %(umatrixcriteria,rdmcriteria,energycriteria))
+            print("=========================================================================")
+            print('FINISHED DMET ITERATION ',self.itr)
+            print()
 
             #Write a table
             ftbl = open(self.tableFile,'a')
@@ -1320,13 +1319,13 @@ class dmet:
                 break
        
         if( self.itr >= self.dmetitrmax ):
-            print "UMATRIX did not converge in less than", self.dmetitrmax, "iterations"
+            print("UMATRIX did not converge in less than", self.dmetitrmax, "iterations")
             
-        print
-        print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-        print "END DMET CALCULATION"
-        print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-        print
+        print()
+        print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        print("END DMET CALCULATION")
+        print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        print()
 
         ##############################################################
         #Checkpoint again

@@ -58,9 +58,9 @@ class ftdmet(dmet):
         #    self.startMu = self.grandmu
     def displayParameters(self):
         dmet.displayParameters(self)
-        print "Temperature of the system: beta = %0.3f; T = %4.4f t"%(self.beta, self.T)
-        print "Chemical potential of the system: ", self.grandmu
-        print "Converged calculations are saved to: ", self.convFile
+        print("Temperature of the system: beta = %0.3f; T = %4.4f t"%(self.beta, self.T))
+        print("Chemical potential of the system: ", self.grandmu)
+        print("Converged calculations are saved to: ", self.convFile)
 
 ########################################################################################
     def get_rotmat_svd(self, RDM1, use_ham=False):
@@ -71,7 +71,7 @@ class ftdmet(dmet):
         Nimp = self.Nimp
 
         if use_ham:
-            print "Using lattice hamiltonian to construct the bath orbitals!"
+            print("Using lattice hamiltonian to construct the bath orbitals!")
             h_lat = self.h1 + self.u_mat + self.fock2e
             rdma = h_lat[:Nbasis,:Nbasis]
             rdmb = h_lat[Nbasis:,Nbasis:]
@@ -101,10 +101,10 @@ class ftdmet(dmet):
         self.actElCount = (Nimp*2 + lba + lbb)/2
         #The embedding system is always half-filling!
         Ncore = (self.Nelec_tot - self.actElCount)/2
-        print 'Virtual orbital #: ', Nbasis-Ncore-(Nimp*2 + lba + lbb)/2
-        print 'Bath orbital #:     ', Nimp
-        print 'Core orbital #:     ', Ncore
-        print 'Actual Electron #: ', self.actElCount
+        print('Virtual orbital #: ', Nbasis-Ncore-(Nimp*2 + lba + lbb)/2)
+        print('Bath orbital #:     ', Nimp)
+        print('Core orbital #:     ', Ncore)
+        print('Actual Electron #: ', self.actElCount)
 
         if(self.fitBath):
             self.fitIndex = rotmat.shape[-1] #includes imp+bath orbitals
@@ -145,7 +145,7 @@ class ftdmet(dmet):
         use_ham = self.hbath
 
         if use_ham:
-            print "USING one-body Hamiltonian to calculate the bath orbitals!"
+            print("USING one-body Hamiltonian to calculate the bath orbitals!")
             h_lat = self.h1 + self.u_mat + self.fock2e
             rdma = h_lat[:Nbasis,:Nbasis]
             rdmb = h_lat[Nbasis:,Nbasis:]
@@ -187,7 +187,7 @@ class ftdmet(dmet):
 
         Nemb = lba + lbb # including the impurity orbs
 
-        print "Bath orbitals are localized with Boys method!"
+        print("Bath orbitals are localized with Boys method!")
         rotmat = np.zeros((Nbasis*2, Nemb))
         rotmat[:Nimp,:Nimp] = np.eye(Nimp)
         rotmat[Nbasis:Nimp+Nbasis,Nimp:2*Nimp] = np.eye(Nimp)
@@ -202,9 +202,9 @@ class ftdmet(dmet):
         self.actElCount = Nemb/2
         Ncore = (self.Nelec_tot - self.actElCount)/2
 
-        print 'The order of the bath: ', qrpower
-        print 'Bath orbital #: ', (Nemb - 2*Nimp)/2
-        print 
+        print('The order of the bath: ', qrpower)
+        print('Bath orbital #: ', (Nemb - 2*Nimp)/2)
+        print()
 
         if(self.fitBath):
             self.fitIndex = rotmat.shape[-1] #includes imp+bath orbitals
@@ -313,18 +313,18 @@ class ftdmet(dmet):
                 rdm2diag.append(corr2RDM[1][i,i,i,i])
             rdm2diag = np.asarray(rdm2diag)
             docc = np.average(rdm2diag)
-            print "RDM2 diagonal terms: ", rdm2diag
+            print("RDM2 diagonal terms: ", rdm2diag)
             netot = 0.
             for i in range(2*self.Nimp):
                 netot += corr1RDM[i,i]
 
-            print "beta-Double occ (Iform):   %.2f      %.12f"%(self.beta, docc)
-            print "beta-Ne on impurity:    %.2f      %.12f"%(self.beta, netot)
-            print '----------------------------------------------------------'
+            print( "beta-Double occ (Iform):   %.2f      %.12f"%(self.beta, docc))
+            print("beta-Ne on impurity:    %.2f      %.12f"%(self.beta, netot))
+            print('----------------------------------------------------------')
 
-            print '----------------------------------------------------------'
-            print '1 body energy contribution: ', E1/self.Nimp
-            print '2 body energy contribution: ', E2/self.Nimp
+            print('----------------------------------------------------------')
+            print('1 body energy contribution: ', E1/self.Nimp)
+            print('2 body energy contribution: ', E2/self.Nimp)
             return E1+E2
 
     #####################################################################
@@ -359,16 +359,16 @@ class ftdmet(dmet):
             rdm2diag.append(rdm2[1][i,i,i,i])
         rdm2diag = np.asarray(rdm2diag)
         docc = np.average(rdm2diag)
-        print "RDM2 diagonal terms: ", rdm2diag
+        print("RDM2 diagonal terms: ", rdm2diag)
         netot = 0.
         for i in range(2*self.Nimp):
             netot += rdm1[i,i]
         
-        print "beta-Double occ (NIform):   %.4f      %.12f"%(self.beta, docc)
-        print "beta-Ne on impurity:    %.4f      %.12f"%(self.beta, netot)
-        print '----------------------------------------------------------'
-        print '1 body energy contribution: ', E1/self.Nimp
-        print '2 body energy contribution: ', E2/self.Nimp
+        print("beta-Double occ (NIform):   %.4f      %.12f"%(self.beta, docc))
+        print("beta-Ne on impurity:    %.4f      %.12f"%(self.beta, netot))
+        print('----------------------------------------------------------')
+        print('1 body energy contribution: ', E1/self.Nimp)
+        print('2 body energy contribution: ', E2/self.Nimp)
         return E1 + E2
 
 ########################################################################################
@@ -438,11 +438,11 @@ class ftdmet(dmet):
 ########################################################################################
     def generateBath(self):
 
-        print
-        print "========================================================================="
-        print "STARTING MF PROBLEM:"
-        print "========================================================================="
-        print
+        print()
+        print("=========================================================================")
+        print("STARTING MF PROBLEM:")
+        print("=========================================================================")
+        print()
 
         self.label = 0
 
@@ -485,26 +485,26 @@ class ftdmet(dmet):
 
         print
         #print "HF orbital energies: ",hfevals
-        print "HF Time: ",hftime
-        print "HF Energy: ",hfE
-        print "Hartree Fock Energy per site: ", hfE/self.Nbasis
-        print "Trace of RDM: ", self.hf1RDM_site.trace()
-        print "Target trace of RDM: ", self.Nelec_tot
-        print "Trace of alpha: ",self.hf1RDM_site[:self.Nbasis, :self.Nbasis].trace()
-        print "Trace of beta: ",self.hf1RDM_site[self.Nbasis:, self.Nbasis:].trace()
+        print("HF Time: ",hftime)
+        print("HF Energy: ",hfE)
+        print("Hartree Fock Energy per site: ", hfE/self.Nbasis)
+        print("Trace of RDM: ", self.hf1RDM_site.trace())
+        print("Target trace of RDM: ", self.Nelec_tot)
+        print("Trace of alpha: ",self.hf1RDM_site[:self.Nbasis, :self.Nbasis].trace())
+        print("Trace of beta: ",self.hf1RDM_site[self.Nbasis:, self.Nbasis:].trace())
 
 
         if(self.constrainType=='BCS'):
             hfgap = hfevals[self.Nbasis] - hfevals[self.Nbasis-1]
-            print "LUMO Energy: ",hfevals[self.Nbasis]
-            print "HOMO Energy: ",hfevals[self.Nbasis-1]
-            print "LUMO-HOMO: ",hfgap
+            print("LUMO Energy: ",hfevals[self.Nbasis])
+            print("HOMO Energy: ",hfevals[self.Nbasis-1])
+            print("LUMO-HOMO: ",hfgap)
             self.hfgap = hfgap #Important will be used to prevent certain search valleys 
         else:
             hfgap = hfevals[self.Nelec_tot] - hfevals[self.Nelec_tot-1]
-            print "LUMO Energy: ",hfevals[self.Nelec_tot]
-            print "HOMO Energy: ",hfevals[self.Nelec_tot-1]
-            print "LUMO-HOMO: ",hfgap
+            print("LUMO Energy: ",hfevals[self.Nelec_tot])
+            print("HOMO Energy: ",hfevals[self.Nelec_tot-1])
+            print("LUMO-HOMO: ",hfgap)
             self.hfgap = hfgap #Important will be used to prevent certain search valleys 
         sys.stdout.flush()
 
@@ -523,14 +523,14 @@ class ftdmet(dmet):
 
     def solveCorrProb(self,h_emb,V_emb,R,rdmCore):
         
-        print
-        print "========================================================================="
-        print "STARTING CORRELATED PROBLEM:"
-        print "========================================================================="
-        print
-        print "Active space size: ",h_emb.shape[0]
-        print "No. of electrons in space: ",self.actElCount 
-        print "Size of reduced space: ",R.shape[1]
+        print()
+        print("=========================================================================")
+        print("STARTING CORRELATED PROBLEM:")
+        print("=========================================================================")
+        print()
+        print("Active space size: ",h_emb.shape[0])
+        print("No. of electrons in space: ",self.actElCount)
+        print("Size of reduced space: ",R.shape[1])
        
         self.label = 1
  
@@ -598,59 +598,59 @@ class ftdmet(dmet):
             bathdensity = sum(dg[2*self.Nimp:])
             coredensity = np.trace(self.rdmCore)
                                        
-        print 
-        print '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^'
-        print 'ENERGY Statistics:'
-        print '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^'
-        print
-        print 'FCI variational energy: ',self.ImpurityEnergy
-        print 'DMET Energy per site: ',Efrag/self.Nimp           
-        print "DMET Total Energy: ",Efrag*self.Nbasis/self.Nimp
-        print 'T-E-INFO      %0.4f        %0.12f'%(self.T, Efrag/self.Nimp)
-        print 'beta-E-INFO      %0.4f        %0.12f'%(self.beta, Efrag/self.Nimp)
-        print
-        print "Total density: ",sum(dg)              
-        print "Density on impurity: ",impdensity
-        print
+        print()
+        print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+        print('ENERGY Statistics:')
+        print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+        print()
+        print('FCI variational energy: ',self.ImpurityEnergy)
+        print('DMET Energy per site: ',Efrag/self.Nimp)    
+        print("DMET Total Energy: ",Efrag*self.Nbasis/self.Nimp)
+        print('T-E-INFO      %0.4f        %0.12f'%(self.T, Efrag/self.Nimp))
+        print('beta-E-INFO      %0.4f        %0.12f'%(self.beta, Efrag/self.Nimp))
+        print()
+        print("Total density: ",sum(dg))
+        print("Density on impurity: ",impdensity)
+        print()
 
         if(self.constrainType=='BCS'):
-            print "Bath density: ",bathdensity," Core density: ",coredensity              
-            print "Density on impurity: up = ",impnup," dn = ",impndn," total = ",impdensity
-            print            
+            print("Bath density: ",bathdensity," Core density: ",coredensity)
+            print("Density on impurity: up = ",impnup," dn = ",impndn," total = ",impdensity)
+            print()
 
         hf1RDM_b = np.dot(R.conjugate().T,np.dot(self.hf1RDM_site - rdmCore,R))
         rdmdiff = (hf1RDM_b-self.IRDM1)[:2*self.Nimp,:2*self.Nimp]           
         impuritynorm = np.linalg.norm(rdmdiff)
         fullnorm = np.linalg.norm(hf1RDM_b-self.IRDM1) 
         critnorm = np.linalg.norm((hf1RDM_b-self.IRDM1)[:self.fitIndex,:self.fitIndex])
-        print '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^'
-        print "RDM Statistics:"
-        print '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^'
-        print
-        print "Difference in HF RDM and Corr RDM before fit: ",impuritynorm
-        print "Bath + Impurity HF RDM and Corr RDM before fit: ",fullnorm
-        print 
+        print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+        print("RDM Statistics:")
+        print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+        print()
+        print("Difference in HF RDM and Corr RDM before fit: ",impuritynorm)
+        print("Bath + Impurity HF RDM and Corr RDM before fit: ",fullnorm)
+        print()
 
         sys.stdout.flush() 
 
-        print "HF Impurity RDM"
+        print("HF Impurity RDM")
         ro = utils.extractImp(self.Nimp,self.hf1RDM_site)
         utils.displayMatrix(ro)
         print
 
-        print "I-RDM:"  
+        print("I-RDM:")
         utils.displayMatrix(self.IRDM1[:2*self.Nimp,:2*self.Nimp])
         print
         magorder = abs(self.IRDM1[1,1]-self.IRDM1[0,0])/2.  
         self.magorder = magorder
         sz = (np.sum(np.diag(self.IRDM1)[:self.Nimp])-np.sum(np.diag(self.IRDM1)[self.Nimp:2*self.Nimp]))/self.Nimp
         nfill = np.sum(np.diag(self.IRDM1)[:2*self.Nimp])/self.Nimp
-        print "T-Magnetic order:    %0.4f      %0.12f"%(self.T, magorder)
-        print "beta-Magnetic order:    %0.4f      %0.12f"%(self.beta, magorder)
-        print "T-Sz:   %.4f     %0.12f "%(self.T, sz)
-        print "beta-Sz:   %.4f     %0.12f "%(self.beta, sz)
-        print "T-filling: %.4f      %0.12f"%(self.T, nfill)
-        print "beta-filling: %.4f      %0.12f"%(self.beta, nfill)
+        print("T-Magnetic order:    %0.4f      %0.12f"%(self.T, magorder))
+        print("beta-Magnetic order:    %0.4f      %0.12f"%(self.beta, magorder))
+        print("T-Sz:   %.4f     %0.12f "%(self.T, sz))
+        print("beta-Sz:   %.4f     %0.12f "%(self.beta, sz))
+        print("T-filling: %.4f      %0.12f"%(self.T, nfill))
+        print("beta-filling: %.4f      %0.12f"%(self.beta, nfill))
 
         '''
         #Do SITE based energy calculation
@@ -705,7 +705,7 @@ class ftdmet(dmet):
         #Prepare table file
         if(not os.path.exists(self.tableFile)):
             ftbl = open(self.tableFile,'a')
-            print >>ftbl,'%4s\t%16s\t%16s\t%16s\t%16s' %('ITR.','DMET Energy','Energy Diff.','RDM Diff.','UMatrix Diff.')
+            print>>ftbl,'%4s\t%16s\t%16s\t%16s\t%16s' %('ITR.','DMET Energy','Energy Diff.','RDM Diff.','UMatrix Diff.')
             ftbl.close()           
 
         #Summarization 
@@ -718,10 +718,10 @@ class ftdmet(dmet):
 
             self.itr += 1
             
-            print
-            print "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-            print "Starting DMET iteration: ",self.itr    
-            print "Date time: ", str(datetime.datetime.now())[:-7]
+            print()
+            print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+            print("Starting DMET iteration: ",self.itr)
+            print("Date time: ", str(datetime.datetime.now())[:-7])
             sys.stdout.flush()              
 
             if(not restartStatus):
@@ -763,14 +763,14 @@ class ftdmet(dmet):
             # TOLERANCE CHECKING
             ##############################################################################################
 
-            print
-            print "========================================================================="
-            print 'Convergence Criteria Observables:'
-            print "========================================================================="
-            print '*UMatrix Difference = ',u_mat_diff
-            print '*RDM Difference (Bath Fit=%d) = %10.6e' %(self.fitBath,self.critnorm)
-            print '*ENERGY Difference of Fragment = ',self.ediff
-            print 
+            print()
+            print("=========================================================================")
+            print('Convergence Criteria Observables:')
+            print("=========================================================================")
+            print('*UMatrix Difference = ',u_mat_diff)
+            print('*RDM Difference (Bath Fit=%d) = %10.6e' %(self.fitBath,self.critnorm))
+            print('*ENERGY Difference of Fragment = ',self.ediff)
+            print()
             sys.stdout.flush() 
             
             ######################################################################
@@ -792,10 +792,10 @@ class ftdmet(dmet):
             if(self.ediff < etol):
                 energycriteria = True
 
-            print 'Convergence Critera: UMATRIX=%d RDM=%d ENERGY=%d' %(umatrixcriteria,rdmcriteria,energycriteria)
-            print "========================================================================="
-            print 'FINISHED DMET ITERATION ',self.itr
-            print
+            print('Convergence Critera: UMATRIX=%d RDM=%d ENERGY=%d' %(umatrixcriteria,rdmcriteria,energycriteria))
+            print("=========================================================================")
+            print('FINISHED DMET ITERATION ',self.itr)
+            print()
 
             #Write a table
             ftbl = open(self.tableFile,'a')
@@ -812,25 +812,25 @@ class ftdmet(dmet):
                 break
        
         if( self.itr >= self.dmetitrmax ):
-            print "UMATRIX did not converge in less than", self.dmetitrmax, "iterations"
+            print("UMATRIX did not converge in less than", self.dmetitrmax, "iterations")
             
-        print
-        print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-        print "END DMET CALCULATION"
-        print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-        print
+        print()
+        print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        print("END DMET CALCULATION")
+        print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        print()
 
         vframeu = "="*20 + " SUMMARY OF THE QUANTATIES " + "="*20
         #vframed = "="*len(vframeu) 
         dframeu = "="*20 + " SUMMARY OF THE CONVERGENCE " + "="*19
         dframed = "="*len(dframeu) 
         
-        print vframeu
+        print(vframeu)
         log.print_summary(vflags, vsummary)
-        print
-        print dframeu
+        print()
+        print(dframeu)
         log.print_summary(dflags, dsummary)
-        print dframed
+        print(dframed)
         
 
         ##############################################################
@@ -859,4 +859,4 @@ if __name__ == '__main__':
     RDM1 = np.random.rand(8,8)
     RDM1 = RDM1 + RDM1.T
     a,b = obj.get_rotmat(RDM1)
-    print a[:,4:]
+    print(a[:,4:])

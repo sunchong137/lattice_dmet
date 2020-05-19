@@ -12,9 +12,9 @@ def diagonalize(H,S=None):
     #NOTE that H must be Hermitian
 
     if S is None:
-    	E,C = la.eigh(H)
+        E,C = la.eigh(H)
     else:
-    	E,C = la.eigh(H,S)
+        E,C = la.eigh(H,S)
 
     return E,C
 
@@ -239,7 +239,7 @@ def printarray( array, filename='array.dat', long_fmt=False ):
             filehandle.write('\n')
 
     else:
-        print 'ERROR: Input array for printing is not of dimension 2, 3, or 4'
+        print('ERROR: Input array for printing is not of dimension 2, 3, or 4')
         exit()
 
 #####################################################################
@@ -290,10 +290,10 @@ def displayMatrix(m,fieldWidth=6,precision=6,fmt="e"):
         for j in range(s[1]):
             if(np.iscomplex(m[i][j])):
                 a = m[i][j]
-                print  tf %(a.real,a.imag),
+                print(tf %(a.real,a.imag))
             else:
-                print sf %(m[i][j]),
-        print 
+                print(sf %(m[i][j]),)
+        print()
 
 def analyticGradient(H, dH, nocc):
     
@@ -357,18 +357,18 @@ def analyticGradientObcs(C,E, dH, nocc):
      pos = np.array(range(len(E)))
      deglocs = None
      for e in edeg:
-	 pps = pos[abs(e-E)<etol]	
-	 if(nocc-1 in pps and nocc in pps):	     
-	     deglocs = np.array(pps)
-	     break                
-	
+         pps = pos[abs(e-E)<etol]    
+         if(nocc-1 in pps and nocc in pps):         
+             deglocs = np.array(pps)
+             break                
+    
      if not deglocs is None:
          Cs = C[:,deglocs]
          Vemb = np.dot(Cs.conjugate().T,np.dot(dH,Cs))
          ee, vv = la.eigh(Vemb)
          Cnew = np.dot(Cs,vv)
          C[:,deglocs] = Cnew
-     	
+         
      #now do everything as per usual     
      Cocc = C[:,:nocc]
      Cvir = C[:,nocc:]
@@ -378,16 +378,16 @@ def analyticGradientObcs(C,E, dH, nocc):
      dE = Eocc-Evir
 
      if not deglocs is None:
-	 print "D:",deglocs
-	 occdegs = deglocs[deglocs<nocc] 
-	 virdegs = deglocs[deglocs>=nocc] - nocc
-         print "O:",occdegs
-	 print "V:",virdegs 
-	 dE[virdegs,occdegs] = 1.0
+         print("D:",deglocs)
+         occdegs = deglocs[deglocs<nocc] 
+         virdegs = deglocs[deglocs>=nocc] - nocc
+         print("O:",occdegs)
+         print("V:",virdegs)
+         dE[virdegs,occdegs] = 1.0
          
-	 idE = np.divide(np.ones_like(dE),dE)
+         idE = np.divide(np.ones_like(dE),dE)
          idE[virdegs,occdegs] = 0.0 
-         Zm = np.multiply(np.dot(Cvir.conjugate().T,np.dot(dH,Cocc)),idE)	 
+         Zm = np.multiply(np.dot(Cvir.conjugate().T,np.dot(dH,Cocc)),idE)     
      else:
          Zm = np.divide(np.dot(Cvir.conjugate().T,np.dot(dH,Cocc)),dE)
  
