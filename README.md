@@ -5,8 +5,6 @@ A Python code for running DMET simulations for lattice models.
 ## Authors: 
 Chong Sun <sunchong137@gmail.com>
 
-Ushnish Ray
-
 # Features
 1. Ground state DMET for Lattice models
 2. Finite-temperature DMET simulations
