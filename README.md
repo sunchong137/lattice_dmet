@@ -18,14 +18,17 @@ Ushnish Ray
 
 First clone the repo from GitHub
 ```bash
-git clone git@github.com:sunchong137/latdmet.git
+git clone git@github.com:sunchong137/lattice_dmet.git
 ```
 Then install via pip
 ```bash
-cd latdmet
+cd lattice_dmet
 pip install -e .
 ```
 Try to import latdmet in python.
+```python
+import ldmet
+```
 
 # Citing latdmet
 Please cite the following [paper](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.101.075131):
