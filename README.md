@@ -3,7 +3,8 @@ Density Matrix Embedding Theory (DMET) for lattice models
 A Python code for running DMET simulations for lattice models. 
 
 ## Authors: 
-Chong Sun <sunchong137@gmail.com>\\
+Chong Sun <sunchong137@gmail.com>
+
 Ushnish Ray
 
 # Features
