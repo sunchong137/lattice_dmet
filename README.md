@@ -10,7 +10,10 @@ Chong Sun <sunchong137@gmail.com>
 2. Finite-temperature DMET simulations
 	    
 # Installation
-
+It is advisible to create a anaconda environment by
+```bash
+conda create -n env_name python=3.9
+```
 ## Dependencies
 1. PySCF 
 2. Block2 for DMET solver and finite T solver.

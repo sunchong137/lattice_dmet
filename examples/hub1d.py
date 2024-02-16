@@ -1,7 +1,6 @@
 
 import sys
 import os
-sys.path.append('/home/sunchong/work/dmet_ur/ft_hubbard_v2')
 import ftdmetTI as dmet
 import numpy as np
 import pyscf.fci.fci_slow as fci

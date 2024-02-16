@@ -17,9 +17,9 @@ from meanfields import *
 import minimizers as mmizer
 import solvers as solver
 
-class dmet:
-
-    def __init__( self, Nbasis, Nelec_tot, Nimp, h1e_site, g2e_site, h1esoc_site=None, SolverType='FCI', u_matrix=None, mtype = np.float64, ctype = 'SOC', globalMu=None, utol=5e-6, etol=1e-5, ntol=1e-6):
+class dmet(object):
+    def __init__(self, norb, nelec, nimp, h1e, h2e, solver_type, utol=5e-6, etol=1e-5, ntol=1e-6):
+    # def __init__( self, Nbasis, Nelec_tot, Nimp, h1e_site, g2e_site, h1esoc_site=None, SolverType='FCI', u_matrix=None, mtype = np.float64, ctype = 'SOC', globalMu=None, utol=5e-6, etol=1e-5, ntol=1e-6):
         
         #Options are: RHF, UHF, SOC
         self.constrainType = ctype
