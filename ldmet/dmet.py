@@ -72,7 +72,7 @@ class dmet(object):
         self.dmetitrmax = MaxIter
         self.corrIter = 40
 
-        self.iteract_form = True # Interacting Formalism
+        self.interact_form = True # Interacting Formalism
         self.fitBath = False 
         #Interacting/Non-Interacting Formalism
         self.paramss = 0
@@ -119,49 +119,6 @@ class dmet(object):
         self.resFile = self.chkPointFile
         self.tableFile = 'tmp.txt'
 
-
-    def get_embedding_ham(self, rotmat):
-        
-        #augment 1e- terms w/u-matrix only on bath because not doing casci
-        #note, the following works b/c u_mat is block diagonal for each cluster        
-        h_curr = np.copy(self.h1+self.globalMu)
-        #rotate the 1/2 e- terms into embedding basis using rotation matrix
-        #note, if doing dca it is the dca embedding basis
-        h_emb = utils.rot1el( h_curr, rotmat)
-      
-        ld = 2*self.Nbasis
-        if(self.interact_form): 
-            #Interacting Bath
-            if(self.g2e_site.shape[0] == self.Nbasis):
-                V2 = np.zeros([ld,ld,ld,ld],dtype=self.mtype)
-                V2[:self.Nbasis,:self.Nbasis,:self.Nbasis,:self.Nbasis] = self.g2e_site
-                V2[self.Nbasis:ld,self.Nbasis:ld,self.Nbasis:ld,self.Nbasis:ld] = self.g2e_site
-                V2[:self.Nbasis,:self.Nbasis,self.Nbasis:ld,self.Nbasis:ld] = self.g2e_site
-                V2[self.Nbasis:ld,self.Nbasis:ld,:self.Nbasis,:self.Nbasis] = self.g2e_site
-                self.V2 = V2
-                V_emb = utils.rot2el_chem_full(V2, rotmat)
-            else:
-                ls = ld/2
-                Rup = rotmat[:ls,:]
-                Rdn = rotmat[ls:,:]
-                V_emb = np.einsum('pi,iq,ri,is -> pqrs',Rup.conjugate().T,Rup,Rdn.conjugate().T,Rdn)*self.g2e_site[0]   
-                V_emb += np.einsum('pi,iq,ri,is -> pqrs',Rdn.conjugate().T,Rdn,Rup.conjugate().T,Rup)*self.g2e_site[0] 
-
-        else:
-            #Non-interacting bath so interaction only on impurity sites           
-            ls = ld/2 
-              
-            Rup = rotmat[:ls,:]
-            Rup[self.Nimp:ls,:] = 0.0
-            Rdn = rotmat[ls:,:]
-            Rdn[self.Nimp:ls,:] = 0.0
-                
-            V_emb = np.einsum('pi,iq,ri,is -> pqrs',Rup.conjugate().T,Rup,Rdn.conjugate().T,Rdn)*self.g2e_site[0]   
-            V_emb += np.einsum('pi,iq,ri,is -> pqrs',Rdn.conjugate().T,Rdn,Rup.conjugate().T,Rup)*self.g2e_site[0] 
-            
-
-        return h_emb, V_emb
-    #####################################################################
 
     def get_impurityEnergy( self, h1_emb, V2_emb, corr1RDM, corr2RDM):
 
@@ -633,7 +590,7 @@ class dmet(object):
 
         #Calculate 1/2e- terms in embedding basis the correlation potential is added
         Rcpy = np.copy(R)
-        h_emb, V_emb = self.get_embedding_ham(Rcpy)          
+        h_emb, V_emb = routine.gen_ham_embedding(self.h1e, self.g2e, self.RotationMatrix, self.nimp, iform=self.interact_form)  
         sys.stdout.flush() 
 
         return h_emb,V_emb,R,rdmCore
