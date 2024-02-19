@@ -13,8 +13,7 @@
 # limitations under the License.
 import numpy as np
 from ldmet import routine, corrpot
-import minimizers as mmizer
-import solvers as solver
+from ldmet.helpers import utils, diis
 
 class dmet(object):
     '''
@@ -22,7 +21,7 @@ class dmet(object):
     '''
     def __init__(self, norb, nelec, nimp, h1e, g2e, init_uimp=None, solver_type="FCI", 
                  utol=5e-6, etol=1e-5, ntol=1e-6, MaxIter=100):
-    # def __init__( self, Nbasis, Nelec_tot, Nimp, h1e_site, g2e_site, h1esoc_site=None, SolverType='FCI', u_matrix=None, 
+    # def __init__( self, Nbasis, Nelec_tot, nimp, h1e_site, g2e_site, h1esoc_site=None, SolverType='FCI', u_matrix=None, 
     #                     mtype = np.float64, ctype = 'SOC', globalMu=None, utol=5e-6, etol=1e-5, ntol=1e-6):
         '''
         Initialization with parameters defining the system. 
@@ -59,9 +58,6 @@ class dmet(object):
         # self.init_umat(init_uimp)
         # self.umat_new = np.copy(self.umat)
         self.filling = 0.5 * (nelec / norb) 
-        self.minimize_u_matrix = mmizer.minimizelsq # TODO replace this less efficient one.
-        #self.minimize_u_matrix = mmizer.minimizeBFGS
-        self.make_h2el = hf.make_h2el # TODO replace
 
         self.utol  = utol
         self.etol  = etol
@@ -76,123 +72,67 @@ class dmet(object):
         #Interacting/Non-Interacting Formalism
         self.paramss = 0
         if(self.fitBath):
-            self.fitIndex = norb * 2
-        else:
             self.fitIndex = nimp * 2
+        else:
+            self.fitIndex = nimp
 
         #DIIS
         self.doDIIS = True 
         self.diisStart = 4
         self.diisDim = 4    
 
-        #DAMP
-        self.doDAMP = True
-        self.dampStart = 4
-        self.dampFactor = 0.25
-        self.dampTol = 0.005
-
-        #Zero Value for Orbital Selection
-        
         #DEBUG OPTIONS
         self.debugPrintRDMDiff = True
         self.dlog = []
  
-        #Mu solver
-        self.muSolverSimple = True 
-        if(self.muSolverSimple):    
-            self.misolver = solver.microIterationSimple
-        else: 
-            self.misolver = solver.microIteration
         self.startMuDefault = True
         if self.startMuDefault:
             self.startMu = self.g2e[0] * (1 - 2*self.filling) 
 
-        self.hfsolver = hf.hf_hubbard_calc 
-        self.mhfsolver = hf.hf_hubbard_calc
- 
-
-
-    def solveFitProb(self, dc):
+    def solveFitProb(self, diis_solver):
 
         print()
         print("=========================================================================")
         print("STARTING FITTING PROBLEM:")
         print("=========================================================================")
 
-        self.label = 2        
-
-          
-
         mintol = 1.0e-6
         maxiterformin = 200
         
-        self.minimize_u_matrix(self, self.RotationMatrix, mintol, maxiterformin)
+        umat_new = corrpot.minimize_lsq(self, rotmat, mintol, maxiterformin)
 
         #DIIS       
         if(self.doDIIS):
             vcor = self.umat_imp.flatten() 
             vcor_new = self.umat_imp.flatten()
-            diffcorr = vcor_new-vcor
-            skipDiis = not (self.itr>=self.diisStart and np.linalg.norm(diffcorr) < 0.01*len(diffcorr) and self.critnorm < 1e-2*len(diffcorr))
-            pvcor, _, _ = dc.Apply(vcor_new,diffcorr, Skip = skipDiis)
+            diffcorr = vcor_new - vcor
+            skipDiis = not (self.itr >= self.diisStart and np.linalg.norm(diffcorr) < 0.01*len(diffcorr) and self.critnorm < 1e-2*len(diffcorr))
+            pvcor, _, _ = diis_solver.Apply(vcor_new, diffcorr, Skip=skipDiis)
             if(not skipDiis):
                 print("DIIS GUESS USED")
-                self.u_mat_new = self.replicate_u_matrix(self.array2matrix(pvcor))  
-
-        #DAMP
-        if(self.doDAMP):
-            vcor = self.umat_imp.flatten()  
-            vcor_new = self.umat_imp.flatten()
-            diffcorr = vcor_new-vcor
-            if(self.itr>=self.dampStart and np.linalg.norm(diffcorr)/len(diffcorr) < self.dampTol):
-                self.u_mat_new = self.replicate_u_matrix(self.array2matrix(diffcorr*self.dampFactor + vcor))
-
+                self.umat_new = routine.expand_u(utils.vec2mat(pvcor))
 
         #calculate frobenius norm of difference between old and new u-matrix (np.linalg.norm)
-        udiff = utils.extractImp(self.Nimp,self.u_mat - self.u_mat_new)
+        udiff = utils.extractImp(self.nimp, self.u_mat - umat_new)
 
         #update u-matrix with most recent guess
-        self.u_mat = self.u_mat_new     
-        eo = utils.extractImp(self.Nimp,self.u_mat)
+        self.u_mat = umat_new     
+        eo = utils.extractImp(self.nimp, self.u_mat)
         
-        #Remove diagonal contribution 
-        nomdg = np.array([udiff[i,j] for i in range(2*self.Nimp) for j in range(i+1,2*self.Nimp)])
+        #Remove diagonal contribution #TODO rewrite
+        nomdg = np.array([udiff[i,j] for i in range(2*self.nimp) for j in range(i+1,2*self.nimp)])
         nomdg_norm = np.linalg.norm(nomdg)
-        
-        #Also remove SOC diagonal contribution
-        nosocdg = np.array([udiff[i,j] for i in range(2*self.Nimp) for j in range(i+1,2*self.Nimp) if (j-self.Nimp != i)])
-        nosocdg_norm = np.linalg.norm(nosocdg)
-
-        #u_mat_diff = np.linalg.norm(nodgs) + np.linalg.norm(dgs)
         u_mat_diff = nomdg_norm
-
-        print()
-        print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
-        print('UMATRIX Statistics')
-        print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
-        print('Current value of difference in UMATRIX = ',u_mat_diff)
-        print('Off-diagonal difference in UMATRIX = ',nomdg_norm)
-        print('SOC difference w/o diagonal = ',nosocdg_norm)
-        print('Full difference in UMATRIX = ',np.linalg.norm(udiff))
-        print('Time to find new UMATRIX = ',time_for_umat)
-        print()
-        print('New UMATRIX: ')
-        utils.displayMatrix(eo)
-        print('T-Umatrix: alpha= %.12f     beta=%.12f'%(eo[0,0], eo[self.Nimp, self.Nimp]))
 
         return u_mat_diff
 
    
-    def solve_groundstate( self ):
-
-        self.updateParams()
-        self.displayParameters()
-
+    def solve_groundstate(self):
         #DMET loop to converge u-matrix
         #u tolerances
-        tol        = self.utol * self.Nimp
-        u_mat_diff = tol+1
-        minutol    = self.utol * self.Nimp #Atleast this tolerance is needed in u no matter what
+        tol        = self.utol * self.nimp
+        u_mat_diff = tol + 1
+        minutol    = self.utol * self.nimp #Atleast this tolerance is needed in u no matter what
 
         #rho tolerances
         ntol       = self.ntol * self.fitIndex
@@ -207,93 +147,51 @@ class dmet(object):
         self.muCollection = []
 
         if(self.doDIIS):
-            dc = diis.FDiisContext(self.diisDim)         
+            diis_solver = diis.FDiisContext(self.diisDim)         
 
+        self.paramss = np.zeros([2, self.fitIndex, self.fitIndex]).flatten() 
 
-        self.initializeFock()       
-
-        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        #Calculate parameter space size << IMPORTANT
-        self.paramss = np.zeros([self.fitIndex,self.fitIndex]).flatten() 
-        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-               
- 
-        while( self.itr < self.dmetitrmax ):
+        while(self.itr < self.dmetitrmax):
 
             self.itr += 1
             
             print()
             print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
             print("Starting DMET iteration: ",self.itr)
-            print("Date time: ", str(datetime.datetime.now())[:-7])
-                           
 
-            if(not restartStatus):
-                #DMET 1: Generate bath
-                h_emb, v_emb, R, rdmCore = routine.gen_emb_ham(self.h1e, self.umat_imp) 
+            #DMET 1: Generate bath
+            h_emb, v_emb, R, rdmCore = routine.gen_emb_ham(self.h1e, self.umat_imp) 
 
-                #DMET 2: Do correlated problem
-                corrpot.solve_corr(h_emb, v_emb, R, rdmCore)
-                self.ediff = abs(self.Efrag-Efrag0)/self.Nimp
-                Efrag0 = self.Efrag
-                                  
-                #DMET 3: Do fitting
-                u_mat_diff = self.solveFitProb(dc)            
-            else:           
-                restartStatus = False
-                
-                if(self.label == 2):
-                    #DMET 1: Generate bath
-                    h_emb,v_emb,R,rdmCore = routine.gen_emb_ham(self.h1e, self.umat_imp) 
-
-                    #DMET 2: Do correlated problem
-                    corrpot.solve_corr(h_emb, v_emb, R, rdmCore)
-                    self.ediff = abs(self.Efrag-Efrag0)/self.Nimp
-                    Efrag0 = self.Efrag
-  
-                if(self.label >= 1): 
-                    #DMET 3: Do fitting
-                    u_mat_diff = self.solveFitProb(dc)            
- 
-            ##############################################################################################
-            # TOLERANCE CHECKING
-            ##############################################################################################
-
+            #DMET 2: Do correlated problem
+            energy_imp, rdm1_emb, rdm2_emb = corrpot.solve_corr(h_emb, v_emb, R, rdmCore)
+            self.ediff = abs(energy_imp-Efrag0)/self.nimp
+            Efrag0 = energy_imp
+                                
+            #DMET 3: Do fitting
+            u_mat_diff = self.solveFitProb(diis_solver)            
+          
             print()
             print("=========================================================================")
             print('Convergence Criteria Observables:')
             print("=========================================================================")
             print('*UMatrix Difference = ',u_mat_diff)
-            print('*RDM Difference (Bath Fit=%d) = %10.6e' %(self.fitBath,self.critnorm))
+            print('*RDM Difference (Bath Fit=%d) = %10.6e' %(self.fitBath, self.critnorm))
             print('*ENERGY Difference of Fragment = ',self.ediff)
             print()
               
-        
-            rdmcriteria = False
-            umatrixcriteria = False
-            energycriteria = False
 
-            if(self.critnorm < ntol):
-                rdmcriteria = True
-
-            if(u_mat_diff < minutol):
-                umatrixcriteria = True
-
-            if(self.ediff < etol):
-                energycriteria = True
-
-            print('Convergence Critera: UMATRIX=%d RDM=%d ENERGY=%d' %(umatrixcriteria,rdmcriteria,energycriteria))
+            print("Umatrix diff: {:%0.4e}".format(u_mat_diff))
+            # print('Convergence Critera: UMATRIX=%d RDM=%d ENERGY=%d' %(umatrixcriteria, rdmcriteria, energycriteria))
             print("=========================================================================")
-            print('FINISHED DMET ITERATION ',self.itr)
+            print('FINISHED DMET ITERATION ', self.itr)
             print()
 
     
             #If fit is super accurate then no point in continuing with u_matrix update      
-            if(umatrixcriteria):
+            if(u_mat_diff < minutol):
                 break
        
-        if( self.itr >= self.dmetitrmax ):
+        if(self.itr >= self.dmetitrmax ):
             print("UMATRIX did not converge in less than", self.dmetitrmax, "iterations")
             
         print()
@@ -301,15 +199,9 @@ class dmet(object):
         print("END DMET CALCULATION")
         print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
         print()
+        u_mat_imp = utils.extractImp(self.nimp,self.u_mat)
+        return energy_imp, u_mat_imp, rdm1_emb, rdm2_emb
 
-        ##############################################################
-        #Checkpoint again
-        ##############################################################
-        self.checkPoint()
-        u_mat_imp = utils.extractImp(self.Nimp,self.u_mat)
-        return self.Efrag, u_mat_imp, self.IRDM1, self.IRDM2
-
-    #########################################################################
 
 
 
