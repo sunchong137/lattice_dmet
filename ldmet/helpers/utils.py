@@ -4,6 +4,12 @@ import scipy.linalg as la
 import scipy.special
 import pyscf.fci
 import math
+
+def flatten_matrix():
+    pass
+
+def vec2mat():
+    pass
 #####################################################################
 
 def diagonalize(H,S=None):

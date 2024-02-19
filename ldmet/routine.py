@@ -14,6 +14,7 @@
 
 '''Functions used in DMET.'''
 import numpy as np
+from ldmet.solvers import meanfield
 
 def expand_u(norb, u_imp):
     '''
@@ -59,9 +60,9 @@ def gen_bath_from_env(norb, nimp, rdm1, tol=1e-15):
 def get_core():
     pass 
 
-def gen_ham_embedding(h1e, h2e, rotmat, nimp, iform=True):
+def project_ham(h1e, h2e, rotmat, nimp, iform=True):
     '''
-    Generate the embedding Hamiltonian.
+    Project the lattice Hamiltonian to embedding space.
     The order of g2e spins take the Pyscf convention: [aa, ab, bb]
     Args:
         h1e: 2D or 3D array.
@@ -106,8 +107,35 @@ def gen_ham_embedding(h1e, h2e, rotmat, nimp, iform=True):
 
     return h1_emb, v_emb
 
-def energy_impurity():
+
+def energy_embedding(h1_emb, h2_emb, rdm1_emb, rdm2_emb, nimp=None, iform=True):
     '''
-    Evaluate the impurity energy.
+    Evaluate the embedding energy. Interact form.
     '''
-    pass
+    if iform:
+        E1 = np.einsum('sij, sji ->', h1_emb, rdm1_emb)
+        E2 = 0.5 * np.einsum('sijkl, sjilk ->', h2_emb, rdm2_emb)
+    else:
+        if nimp is None:
+            nimp = rdm1_emb.shape[-1] // 2
+        ni = nimp
+        E1 = np.einsum('sij, sji ->', h1_emb[:, :ni], rdm1_emb[:ni, :])
+        E2 = 0.5 * np.einsum('sijkl, sjilk ->', h2_emb[:, :ni, :ni, :ni, :ni], rdm2_emb[:, :ni, :ni, :ni, :ni])
+    return E1 + E2
+
+
+def gen_emb_ham(h1e, g2e, uimp, fock2e=0, iform=True):
+    '''
+    Generate embedding hamiltonian from mean field solution.
+    '''
+    norb = h1e.shape[-1]
+    nimp = uimp.shape[-1]
+    umat = expand_u(norb, uimp)
+    mu, rdm1 = meanfield.uhf(h1e, g2e, umat)
+
+    #Calculate rotation matrix to embedding basis from HF 1RDM (same as calculating bath orbitals)
+    rotmat = gen_rotmat_from_mix(norb, nimp, rdm1) 
+    rdm_core = get_core()
+
+    h_emb, v_emb = project_ham(h1e, g2e, rotmat, nimp, iform=iform)  
+    return h_emb, v_emb, rotmat, rdm_core
