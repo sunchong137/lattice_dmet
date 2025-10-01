@@ -1,0 +1,13 @@
+name: ldmet_env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - numpy>=1.25.2
+  - scipy>=1.11.2
+  - pyscf>=2.3.0
+  - setuptools>=64
+  - pip
+  - pip:
+    - -e .

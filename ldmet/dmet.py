@@ -89,7 +89,7 @@ class dmet(object):
         if self.startMuDefault:
             self.startMu = self.g2e[0] * (1 - 2*self.filling) 
 
-    def solveFitProb(self, diis_solver):
+    def solveFitProb(self, rotmat, diis_solver=None):
 
         print()
         print("=========================================================================")
@@ -103,6 +103,8 @@ class dmet(object):
 
         #DIIS       
         if(self.doDIIS):
+            if diis_solver is None:
+                print("Warning: DIIS solver is not provided! Optimizing without DIIS!")
             vcor = self.umat_imp.flatten() 
             vcor_new = self.umat_imp.flatten()
             diffcorr = vcor_new - vcor
@@ -132,7 +134,7 @@ class dmet(object):
         #u tolerances
         tol        = self.utol * self.nimp
         u_mat_diff = tol + 1
-        minutol    = self.utol * self.nimp #Atleast this tolerance is needed in u no matter what
+        minutol    = self.utol * self.nimp #At least this tolerance is needed in u no matter what
 
         #rho tolerances
         ntol       = self.ntol * self.fitIndex
@@ -149,7 +151,7 @@ class dmet(object):
         if(self.doDIIS):
             diis_solver = diis.FDiisContext(self.diisDim)         
 
-        self.paramss = np.zeros([2, self.fitIndex, self.fitIndex]).flatten() 
+        self.paramss = len(np.zeros([2, self.fitIndex, self.fitIndex]).flatten()) 
 
         while(self.itr < self.dmetitrmax):
 
@@ -167,8 +169,8 @@ class dmet(object):
             self.ediff = abs(energy_imp-Efrag0)/self.nimp
             Efrag0 = energy_imp
                                 
-            #DMET 3: Do fitting
-            u_mat_diff = self.solveFitProb(diis_solver)            
+            #DMET 3: Update the correlation potential
+            u_mat_diff = self.solveFitProb(R, diis_solver=diis_solver)            
           
             print()
             print("=========================================================================")
